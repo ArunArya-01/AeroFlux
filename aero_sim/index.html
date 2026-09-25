@@ -106,6 +106,11 @@
         transform: translate(16px, -50%);
       }
       #aircraftHoverCard.visible { display: block; }
+      #miniMap { position: fixed; z-index: 31; right: 316px; bottom: 104px; display: none; width: 210px; padding: 10px; border: 1px solid rgba(255,255,255,.22); border-radius: 10px; background: rgba(6,15,25,.88); box-shadow: 0 12px 32px rgba(0,0,0,.34); backdrop-filter: blur(12px); }
+      #miniMap.visible { display: block; }
+      .mini-map-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .85px; text-transform: uppercase; }
+      .mini-map-head b { color: #46d7a0; font-size: 8px; }
+      #miniMapCanvas { display: block; width: 100%; height: auto; border-radius: 5px; background: #091a2b; }
       .aircraft-hover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       .aircraft-hover-title { color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
       .aircraft-hover-live { color: #4ee6b0; font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
@@ -1390,6 +1395,7 @@
         .mobile-panel-btn { min-width: 62px; padding: 8px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); font: 700 9px var(--font); letter-spacing: .5px; text-transform: uppercase; }
         .mobile-panel-btn.active { border-color: rgba(237,28,28,.65); background: rgba(237,28,28,.14); color: var(--text); }
         #leftRail, #rightRail { top: auto; bottom: 132px; left: 10px; right: 10px; width: auto; max-height: min(48vh, 430px); padding: 0; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(14px); transition: opacity .18s ease, transform .18s ease; }
+        #miniMap { right: 10px; bottom: 130px; width: 170px; }
         #leftRail { display: block; }
         #rightRail { display: flex; gap: 10px; }
         body.mobile-panel-flight #leftRail, body.mobile-panel-data #rightRail { opacity: 1; pointer-events: auto; transform: translateY(0); }
@@ -1560,6 +1566,10 @@
         <div><span>Heading</span><b id="aircraftHoverHeading">—</b></div>
         <div><span>Replay ETA</span><b id="aircraftHoverEta">—</b></div>
       </div>
+    </aside>
+    <aside id="miniMap" aria-label="Full route mini-map" aria-hidden="true">
+      <div class="mini-map-head"><span>Route overview</span><b>Follow</b></div>
+      <canvas id="miniMapCanvas" width="420" height="210" aria-label="LHR to JFK route with live aircraft position"></canvas>
     </aside>
 
     <div id="liveRegion" class="sr-only" aria-live="polite"></div>

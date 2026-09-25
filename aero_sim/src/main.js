@@ -34,6 +34,7 @@ const state = {
   controlsAbort: null,
   metricTooltipBound: false,
   mobilePanel: null,
+  routeSamples: [],
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -52,6 +53,7 @@ function grab() {
     'summaryPhysicsError', 'summaryImprovement', 'completionRoute',
     'aircraftHoverCard', 'aircraftHoverAltitude', 'aircraftHoverSpeed',
     'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal', 'metricTooltip',
+    'miniMap', 'miniMapCanvas',
     'flightReportModal', 'reportRoute', 'reportDuration', 'reportFuel', 'reportR3Error',
     'reportImprovement', 'reportMeasured', 'reportPhysics', 'reportPhysicsError',
     'reportR3', 'reportR3AbsError', 'reportChart', 'reportTakeoffMass', 'reportFinalMass',
@@ -237,6 +239,7 @@ function buildScene(viewer, flight) {
       alt: alt,
     })
   }
+  state.routeSamples = latLonAlt
 
   // Sampled position property for smooth animation with auto-orientation.
   const positionProperty = new Cesium.SampledPositionProperty()
@@ -380,6 +383,70 @@ function updateCamera(viewer, clock) {
   ))
 }
 
+function updateMiniMap(progress) {
+  const visible = state.cameraMode === 'follow' && state.routeSamples.length > 0
+  els.miniMap.classList.toggle('visible', visible)
+  els.miniMap.setAttribute('aria-hidden', String(!visible))
+  if (!visible) return
+
+  const canvas = els.miniMapCanvas
+  const ctx = canvas.getContext('2d')
+  const W = canvas.width
+  const H = canvas.height
+  const pad = 20
+  const bounds = { west: -80, east: 2, south: 34, north: 60 }
+  const project = ({ lon, lat }) => ({
+    x: pad + ((lon - bounds.west) / (bounds.east - bounds.west)) * (W - pad * 2),
+    y: H - pad - ((lat - bounds.south) / (bounds.north - bounds.south)) * (H - pad * 2),
+  })
+  const samples = state.routeSamples
+  const currentIndex = Math.min(samples.length - 1, Math.round(progress * (samples.length - 1)))
+
+  ctx.fillStyle = '#091a2b'
+  ctx.fillRect(0, 0, W, H)
+  ctx.strokeStyle = 'rgba(133,188,216,.12)'
+  ctx.lineWidth = 1
+  for (let lon = -70; lon <= 0; lon += 20) {
+    const x = project({ lon, lat: bounds.south }).x
+    ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, H - pad); ctx.stroke()
+  }
+  for (let lat = 40; lat < 60; lat += 10) {
+    const y = project({ lon: bounds.west, lat }).y
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke()
+  }
+  const trace = (endIndex, color, width) => {
+    ctx.strokeStyle = color
+    ctx.lineWidth = width
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    samples.slice(0, endIndex + 1).forEach((sample, index) => {
+      const point = project(sample)
+      if (index === 0) ctx.moveTo(point.x, point.y)
+      else ctx.lineTo(point.x, point.y)
+    })
+    ctx.stroke()
+  }
+  trace(samples.length - 1, 'rgba(255,255,255,.24)', 2)
+  trace(currentIndex, '#edf6ff', 3)
+
+  const origin = project(samples[0])
+  const destination = project(samples[samples.length - 1])
+  const aircraft = project(samples[currentIndex])
+  ;[[origin, 'LHR'], [destination, 'JFK']].forEach(([point, label]) => {
+    ctx.fillStyle = '#ffffff'
+    ctx.beginPath(); ctx.arc(point.x, point.y, 4, 0, Math.PI * 2); ctx.fill()
+    ctx.fillStyle = 'rgba(255,255,255,.82)'
+    ctx.font = '700 15px system-ui'
+    ctx.fillText(label, point.x + 7, point.y - 7)
+  })
+  ctx.fillStyle = '#ed1c24'
+  ctx.beginPath(); ctx.arc(aircraft.x, aircraft.y, 7, 0, Math.PI * 2); ctx.fill()
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 2
+  ctx.stroke()
+}
+
 function updateClock(viewer) {
   viewer.clock.multiplier = SPEED_STEPS[state.speedIdx]
   els.speedLabel.textContent = String(SPEED_STEPS[state.speedIdx])
@@ -407,6 +474,8 @@ function bindControls(viewer) {
       document.querySelectorAll('#cameraMode .cn-btn').forEach((b) => b.classList.toggle('active', b === btn))
       if (state.cameraMode === 'overview') setOverviewCamera(viewer)
       else updateCamera(viewer, viewer.clock)
+      const progress = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, viewer.clock.startTime) / state.totalDurationS))
+      updateMiniMap(progress)
     }, listenerOptions)
   })
   document.getElementById('btnFocus').addEventListener('click', (event) => {
@@ -519,6 +588,7 @@ function tick(viewer, clock) {
   cumR3 += iv.r3Prediction * frac
 
   const elapsed = t * state.totalDurationS
+  updateMiniMap(t)
 
   els.hudProgress.textContent = `${(t * 100).toFixed(1)}%`
   els.progressBarFill.style.width = `${t * 100}%`
