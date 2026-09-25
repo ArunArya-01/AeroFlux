@@ -287,6 +287,21 @@ function buildScene(viewer, flight) {
   state.plane = viewer.entities.add({
     position: positionProperty,
     orientation: a320Orientation,
+    label: {
+      text: new Cesium.CallbackProperty((time) => {
+        const progress = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(time, startTime) / totalSeconds))
+        const intervalIndex = Math.min(state.intervals.length - 1, Math.floor(progress * (state.intervals.length - 1)))
+        return getFlightPhase(state.intervals[intervalIndex], progress).toUpperCase()
+      }, false),
+      font: '700 12px system-ui',
+      fillColor: Cesium.Color.WHITE,
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      outlineColor: Cesium.Color.fromCssColorString('#08121f'),
+      outlineWidth: 3,
+      pixelOffset: new Cesium.Cartesian2(0, -54),
+      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
     model: {
       uri: '/assets/a320-family.glb',
       minimumPixelSize: new Cesium.CallbackProperty(
@@ -817,9 +832,14 @@ function tick(viewer, clock) {
 }
 
 function updatePhaseIndicator(iv, progress) {
-  let phase = iv.phase && iv.phase !== 'unknown' ? iv.phase.toLowerCase() : ''
-  if (!phase) phase = progress < 0.04 ? 'takeoff' : progress < 0.15 ? 'climb' : progress < 0.9 ? 'cruise' : progress < 0.98 ? 'descent' : 'landing'
+  const phase = getFlightPhase(iv, progress)
   document.querySelectorAll('[data-phase-step]').forEach((step) => step.classList.toggle('active', step.dataset.phaseStep === phase))
+}
+
+function getFlightPhase(interval, progress) {
+  let phase = interval?.phase && interval.phase !== 'unknown' ? interval.phase.toLowerCase() : ''
+  if (!phase) phase = progress < 0.04 ? 'takeoff' : progress < 0.15 ? 'climb' : progress < 0.9 ? 'cruise' : progress < 0.98 ? 'descent' : 'landing'
+  return phase
 }
 
 function updateForceMeters(iv) {
