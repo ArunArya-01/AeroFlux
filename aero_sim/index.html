@@ -1027,13 +1027,18 @@
       .report-extreme span { color: var(--muted); font-size: 9px; letter-spacing: .55px; text-transform: uppercase; }
       .report-extreme b { margin-top: 5px; color: var(--text); font-size: 14px; font-variant-numeric: tabular-nums; }
       @media print {
+        @page { margin: 12mm; size: auto; }
+        html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
         body * { visibility: hidden !important; }
+        #simUI { position: static !important; inset: auto !important; height: auto !important; overflow: visible !important; opacity: 1 !important; }
+        #simUI > :not(#flightReportModal) { display: none !important; }
         #flightReportModal, #flightReportModal * { visibility: visible !important; }
-        #flightReportModal { position: absolute !important; inset: 0 !important; display: block !important; padding: 0 !important; background: #fff !important; opacity: 1 !important; }
+        #flightReportModal { position: static !important; inset: auto !important; display: block !important; width: auto !important; height: auto !important; padding: 0 !important; overflow: visible !important; background: #fff !important; opacity: 1 !important; }
         #flightReportModal .report-card { width: 100% !important; max-height: none !important; overflow: visible !important; border: 0 !important; border-radius: 0 !important; background: #fff !important; box-shadow: none !important; color: #111 !important; }
         #flightReportModal .report-card * { color: #111 !important; border-color: #d6d6d6 !important; background: transparent !important; }
         #flightReportModal .report-status { color: #126b48 !important; border-color: #126b48 !important; }
         #flightReportModal .completion-actions { display: none !important; }
+        #reportDetailedAnalysis { break-before: page; page-break-before: always; }
       }
       .primary-btn, .secondary-btn { padding: 10px 14px; border-radius: 8px; font: 700 11px var(--font); cursor: pointer; text-transform: uppercase; letter-spacing: .5px; }
       .primary-btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
@@ -1927,7 +1932,7 @@
           <div class="report-chart-wrap"><canvas id="reportChart" width="1400" height="460" aria-label="Final cumulative fuel-burn comparison chart"></canvas></div>
           <div class="report-chart-legend"><span><i class="report-chart-key"></i>Measured</span><span><i class="report-chart-key physics"></i>Physics baseline</span><span><i class="report-chart-key r3"></i>AeroTwin R3</span></div>
         </section>
-        <section class="report-section" aria-labelledby="reportQualityTitle">
+        <section id="reportDetailedAnalysis" class="report-section" aria-labelledby="reportQualityTitle">
           <h3 id="reportQualityTitle">Prediction quality across the replay</h3>
           <table class="report-table"><thead><tr><th>Metric</th><th>Physics baseline</th><th>AeroTwin R3</th></tr></thead><tbody>
             <tr><td>Total predicted fuel</td><td id="reportPhysicsTotal">—</td><td id="reportR3Total">—</td></tr>
