@@ -55,6 +55,7 @@ function grab() {
     'aircraftHoverCard', 'aircraftHoverAltitude', 'aircraftHoverSpeed',
     'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal', 'metricTooltip',
     'miniMap', 'miniMapCanvas',
+    'benchmarkModal',
     'flightReportModal', 'reportRoute', 'reportDuration', 'reportFuel', 'reportR3Error',
     'reportImprovement', 'reportMeasured', 'reportPhysics', 'reportPhysicsError',
     'reportR3', 'reportR3AbsError', 'reportChart', 'reportTakeoffMass', 'reportFinalMass',
@@ -553,11 +554,17 @@ function bindControls(viewer) {
   })
   document.getElementById('expandComparisonBtn').addEventListener('click', () => setComparisonOpen(true), listenerOptions)
   document.getElementById('comparisonClose').addEventListener('click', () => setComparisonOpen(false), listenerOptions)
+  document.getElementById('benchmarkOpen').addEventListener('click', () => setBenchmarkOpen(true), listenerOptions)
+  document.getElementById('benchmarkClose').addEventListener('click', () => setBenchmarkOpen(false), listenerOptions)
   els.comparisonModal.addEventListener('click', (event) => {
     if (event.target === els.comparisonModal) setComparisonOpen(false)
   }, listenerOptions)
+  els.benchmarkModal.addEventListener('click', (event) => {
+    if (event.target === els.benchmarkModal) setBenchmarkOpen(false)
+  }, listenerOptions)
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && els.comparisonModal.classList.contains('open')) setComparisonOpen(false)
+    if (event.key === 'Escape' && els.benchmarkModal.classList.contains('open')) setBenchmarkOpen(false)
     if (event.key === 'Escape' && els.flightReportModal.classList.contains('open')) setFlightReportOpen(false)
   }, listenerOptions)
   els.timeline.addEventListener('input', () => {
@@ -734,6 +741,11 @@ function setComparisonOpen(open) {
   els.comparisonModal.classList.toggle('open', open)
   els.comparisonModal.setAttribute('aria-hidden', String(!open))
   if (open) drawChart()
+}
+
+function setBenchmarkOpen(open) {
+  els.benchmarkModal.classList.toggle('open', open)
+  els.benchmarkModal.setAttribute('aria-hidden', String(!open))
 }
 
 function drawChart() {
