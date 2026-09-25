@@ -541,8 +541,10 @@
         gap: 3px;
         padding: 0 16px 14px;
       }
-      .phase-strip span {
+      .phase-strip button {
         position: relative;
+        border: 0;
+        background: transparent;
         padding-top: 8px;
         color: var(--muted);
         font-size: 8px;
@@ -550,8 +552,9 @@
         letter-spacing: .25px;
         text-align: center;
         text-transform: uppercase;
+        cursor: pointer;
       }
-      .phase-strip span::before {
+      .phase-strip button::before {
         content: '';
         position: absolute;
         top: 0;
@@ -561,8 +564,9 @@
         border-radius: 8px;
         background: rgba(255,255,255,.12);
       }
-      .phase-strip span.active { color: #fff; }
-      .phase-strip span.active::before { background: var(--accent); box-shadow: 0 0 10px rgba(220,20,20,.65); }
+      .phase-strip button:hover { color: var(--text); }
+      .phase-strip button.active { color: #fff; }
+      .phase-strip button.active::before { background: var(--accent); box-shadow: 0 0 10px rgba(220,20,20,.65); }
 
       /* Fuel Prediction panel */
       .pred-section-label {
@@ -1512,8 +1516,8 @@
             <div class="value" id="hudFuelUsed"><span class="unit">0</span> kg</div>
           </div>
         </div>
-        <div class="phase-strip" aria-label="Flight phase">
-          <span data-phase-step="takeoff">Takeoff</span><span data-phase-step="climb">Climb</span><span data-phase-step="cruise">Cruise</span><span data-phase-step="descent">Descent</span><span data-phase-step="landing">Landing</span>
+        <div class="phase-strip" aria-label="Flight event timeline">
+          <button type="button" data-phase-step="takeoff" title="Jump to takeoff">Takeoff</button><button type="button" data-phase-step="climb" title="Jump to climb">Climb</button><button type="button" data-phase-step="cruise" title="Jump to cruise">Cruise</button><button type="button" data-phase-step="descent" title="Jump to descent">Descent</button><button type="button" data-phase-step="landing" title="Jump to landing">Landing</button>
         </div>
       </section>
     </aside>

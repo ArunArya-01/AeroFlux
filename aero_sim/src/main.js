@@ -31,6 +31,7 @@ const state = {
   chartMode: 'cumulative',
   completed: false,
   controlsAbort: null,
+  phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
 const els = {}
@@ -303,6 +304,9 @@ function bindControls(viewer) {
     event.currentTarget.classList.toggle('active', light)
     event.currentTarget.textContent = light ? 'Dark' : 'Theme'
   }, listenerOptions)
+  document.querySelectorAll('[data-phase-step]').forEach((button) => {
+    button.addEventListener('click', () => jumpToPhase(viewer, button.dataset.phaseStep), listenerOptions)
+  })
   document.querySelectorAll('[data-collapse]').forEach((button) => {
     button.addEventListener('click', () => {
       const card = button.closest('.panel-card')
@@ -326,6 +330,18 @@ function bindControls(viewer) {
   document.getElementById('libraryClose').addEventListener('click', () => toggleLibrary(false), listenerOptions)
   document.getElementById('summaryClose').addEventListener('click', () => hideCompletion(), listenerOptions)
   document.getElementById('replayBtn').addEventListener('click', () => replay(viewer), listenerOptions)
+}
+
+function jumpToPhase(viewer, phase) {
+  const fraction = state.phaseAnchors[phase]
+  if (fraction === undefined || !state.totalDurationS) return
+  viewer.clock.currentTime = Cesium.JulianDate.addSeconds(
+    viewer.clock.startTime,
+    fraction * state.totalDurationS,
+    new Cesium.JulianDate(),
+  )
+  tick(viewer, viewer.clock)
+  els.liveRegion.textContent = `Jumped to ${phase}.`
 }
 
 function tick(viewer, clock) {
