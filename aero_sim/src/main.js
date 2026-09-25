@@ -38,6 +38,8 @@ const state = {
   miniMapDragBound: false,
   heatmapMode: 'burn',
   heatmapSegments: [],
+  weatherEnabled: false,
+  weatherEntities: [],
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -57,6 +59,7 @@ function grab() {
     'aircraftHoverCard', 'aircraftHoverAltitude', 'aircraftHoverSpeed',
     'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal', 'metricTooltip',
     'miniMap', 'miniMapCanvas',
+    'weatherReadout', 'weatherWind', 'weatherTemp', 'weatherCloud', 'weatherTurbulence',
     'benchmarkModal',
     'flightReportModal', 'reportRoute', 'reportDuration', 'reportFuel', 'reportR3Error',
     'reportImprovement', 'reportMeasured', 'reportPhysics', 'reportPhysicsError',
@@ -275,6 +278,7 @@ function buildScene(viewer, flight) {
     cartesianSamples.push(position)
   }
   buildRouteHeatmap(viewer, cartesianSamples, startTime, totalSeconds)
+  buildWeatherDemo(viewer)
 
   // One real A320-family 3D aircraft is used in every camera mode. The model's
   // velocity orientation makes its nose follow the route, while only the camera
@@ -352,6 +356,60 @@ function updateRouteHeatmap() {
     // Cool colours mean low value; warm colours mean high value.
     entity.polyline.material = Cesium.Color.fromHsl(0.62 - normalized * 0.62, 0.86, 0.54, 0.96)
   })
+}
+
+function buildWeatherDemo(viewer) {
+  const windArrows = [
+    [[-65, 45], [-59, 47]], [[-53, 49], [-47, 51]], [[-41, 52], [-35, 53]],
+    [[-29, 53], [-23, 52]], [[-17, 51], [-11, 49]],
+  ]
+  windArrows.forEach(([from, to]) => {
+    state.weatherEntities.push(viewer.entities.add({
+      show: false,
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights([from[0], from[1], 14000, to[0], to[1], 14000]),
+        width: 3,
+        material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.fromCssColorString('#75d9ff').withAlpha(0.72)),
+      },
+    }))
+  })
+  ;[[-56, 48], [-39, 51], [-22, 50]].forEach(([lon, lat], index) => {
+    state.weatherEntities.push(viewer.entities.add({
+      show: false,
+      position: Cesium.Cartesian3.fromDegrees(lon, lat, 5000 + index * 900),
+      ellipse: {
+        semiMajorAxis: 210000,
+        semiMinorAxis: 95000,
+        material: Cesium.Color.WHITE.withAlpha(0.14),
+        outline: true,
+        outlineColor: Cesium.Color.fromCssColorString('#c9f0ff').withAlpha(0.16),
+      },
+    }))
+  })
+}
+
+function setWeatherEnabled(enabled) {
+  state.weatherEnabled = enabled
+  state.weatherEntities.forEach((entity) => { entity.show = enabled })
+  els.weatherReadout.classList.toggle('visible', enabled)
+  els.weatherReadout.setAttribute('aria-hidden', String(!enabled))
+  const button = document.getElementById('weatherToggle')
+  button.classList.toggle('active', enabled)
+  button.setAttribute('aria-pressed', String(enabled))
+  button.textContent = enabled ? 'Weather on' : 'Weather'
+}
+
+function updateWeatherReadout(interval, progress) {
+  if (!state.weatherEnabled || !interval) return
+  const altitudeKm = (interval.altitudeM || 0) / 1000
+  const windSpeed = 34 + Math.round(22 * (0.5 + 0.5 * Math.sin(progress * Math.PI * 3)))
+  const windHeading = ['W', 'WNW', 'NW', 'WSW'][Math.floor(progress * 4) % 4]
+  const cloud = Math.round(25 + 55 * (0.5 + 0.5 * Math.cos(progress * Math.PI * 4)))
+  const turbulence = cloud > 62 ? 'Moderate' : cloud > 43 ? 'Light' : 'Smooth'
+  els.weatherWind.textContent = `${windHeading} ${windSpeed} kt`
+  els.weatherTemp.textContent = `${(15 - altitudeKm * 6.5).toFixed(0)}°C`
+  els.weatherCloud.textContent = `${cloud}%`
+  els.weatherTurbulence.textContent = turbulence
 }
 
 function bindAircraftHover(viewer) {
@@ -589,6 +647,10 @@ function bindControls(viewer) {
       els.liveRegion.textContent = `Travelled route coloured by ${button.textContent.toLowerCase()}.`
     }, listenerOptions)
   })
+  document.getElementById('weatherToggle').addEventListener('click', () => {
+    setWeatherEnabled(!state.weatherEnabled)
+    els.liveRegion.textContent = state.weatherEnabled ? 'Demo weather layer enabled.' : 'Demo weather layer disabled.'
+  }, listenerOptions)
   document.querySelectorAll('[data-chart-mode]').forEach((button) => {
     button.addEventListener('click', () => {
       state.chartMode = button.dataset.chartMode
@@ -693,6 +755,7 @@ function tick(viewer, clock) {
 
   // Force meters from flight state.
   updateForceMeters(iv)
+  updateWeatherReadout(iv, t)
   updateMassPanel(iv, cumGt)
   updatePhaseIndicator(iv, t)
 
