@@ -32,6 +32,7 @@ const state = {
   chartLayout: 'overlay',
   completed: false,
   controlsAbort: null,
+  metricTooltipBound: false,
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -49,7 +50,7 @@ function grab() {
     'timeline', 'liveRegion', 'completionModal', 'summaryFuel', 'summaryR3Error',
     'summaryPhysicsError', 'summaryImprovement', 'completionRoute',
     'aircraftHoverCard', 'aircraftHoverAltitude', 'aircraftHoverSpeed',
-    'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal',
+    'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal', 'metricTooltip',
   ].forEach((id) => (els[id] = document.getElementById(id)))
 }
 
@@ -63,6 +64,7 @@ function fmtTime(sec) {
 
 async function main() {
   grab()
+  bindMetricTooltips()
   const viewer = new Cesium.Viewer('cesiumContainer', {
     timeline: false,
     animation: false,
@@ -115,6 +117,55 @@ async function main() {
 
   viewer.clock.onTick.addEventListener((clock) => tick(viewer, clock))
   viewer.clock.onTick.addEventListener((clock) => updateCamera(viewer, clock))
+}
+
+function bindMetricTooltips() {
+  if (state.metricTooltipBound) return
+  state.metricTooltipBound = true
+
+  let activeTip = null
+  const hide = () => {
+    activeTip = null
+    els.metricTooltip.classList.remove('visible')
+    els.metricTooltip.setAttribute('aria-hidden', 'true')
+  }
+  const show = (tip) => {
+    const message = tip.dataset.tip
+    if (!message) return hide()
+
+    activeTip = tip
+    els.metricTooltip.textContent = message
+    const rect = tip.getBoundingClientRect()
+    const maxLeft = Math.max(12, window.innerWidth - 262)
+    els.metricTooltip.style.left = `${Math.min(Math.max(12, rect.left), maxLeft)}px`
+
+    // Put the card above the icon where possible, otherwise below it. Because
+    // this element is fixed at the app root, right-rail scrolling cannot crop it.
+    const showBelow = rect.top < 110
+    els.metricTooltip.style.top = `${showBelow ? rect.bottom + 8 : rect.top - 8}px`
+    els.metricTooltip.style.transform = showBelow ? 'none' : 'translateY(-100%)'
+    els.metricTooltip.classList.add('visible')
+    els.metricTooltip.setAttribute('aria-hidden', 'false')
+  }
+
+  document.addEventListener('pointerover', (event) => {
+    const tip = event.target.closest('.help-tip')
+    if (tip) show(tip)
+  })
+  document.addEventListener('pointerout', (event) => {
+    const tip = event.target.closest('.help-tip')
+    if (tip && activeTip === tip) hide()
+  })
+  document.addEventListener('focusin', (event) => {
+    const tip = event.target.closest('.help-tip')
+    if (tip) show(tip)
+  })
+  document.addEventListener('focusout', (event) => {
+    const tip = event.target.closest('.help-tip')
+    if (tip && activeTip === tip) hide()
+  })
+  window.addEventListener('resize', hide)
+  window.addEventListener('scroll', hide, true)
 }
 
 function buildScene(viewer, flight) {

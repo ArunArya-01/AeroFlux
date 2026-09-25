@@ -665,6 +665,25 @@
         transition: opacity .15s, transform .15s;
       }
       .help-tip:hover::after, .help-tip:focus-visible::after { opacity: 1; transform: translateY(0); }
+      /* The visible metric tooltip is rendered in a fixed overlay so it is not
+         clipped by the scrollable dashboard panels. */
+      .help-tip::after { display: none; }
+      #metricTooltip {
+        position: fixed;
+        z-index: 130;
+        display: none;
+        width: min(250px, calc(100vw - 24px));
+        padding: 9px 10px;
+        border: 1px solid rgba(255,255,255,.24);
+        border-radius: 7px;
+        background: rgba(11,16,23,.96);
+        box-shadow: 0 10px 28px rgba(0,0,0,.42);
+        color: var(--text);
+        font: 500 10px/1.42 var(--font);
+        letter-spacing: 0;
+        pointer-events: none;
+      }
+      #metricTooltip.visible { display: block; }
       .pred-chart-wrap {
         margin-top: 12px;
         background: rgba(0, 0, 0, 0.3);
@@ -1486,6 +1505,7 @@
     <!-- ================= SIMULATION ================= -->
     <div id="simUI" aria-hidden="true">
     <div id="cesiumContainer"></div>
+    <div id="metricTooltip" role="tooltip" aria-hidden="true"></div>
     <aside id="aircraftHoverCard" aria-hidden="true" role="status">
       <div class="aircraft-hover-head"><span class="aircraft-hover-title">A320 family</span><span class="aircraft-hover-live">Live</span></div>
       <div class="aircraft-hover-grid">
@@ -1553,7 +1573,7 @@
             <div class="value" id="hudElapsed">00:00:00</div>
           </div>
           <div class="stat">
-            <div class="label">Fuel Used</div>
+            <div class="label">Fuel Used <button class="help-tip" data-tip="Fuel consumed so far in the replay. Source: saved ground-truth interval labels." aria-label="About fuel used">i</button></div>
             <div class="value" id="hudFuelUsed"><span class="unit">0</span> kg</div>
           </div>
         </div>
@@ -1572,7 +1592,7 @@
 
         <div class="force-meter">
           <div class="force-header">
-            <span class="force-name">Thrust</span>
+            <span class="force-name">Thrust <button class="help-tip" data-tip="Normalized propulsion demand derived from speed and vertical rate. Source: frontend flight-state visualization, not engine telemetry." aria-label="About thrust">i</button></span>
             <span class="force-val" id="thrustVal">0%</span>
           </div>
           <div class="force-track"><div class="force-fill thrust" id="thrustFill"></div></div>
@@ -1580,7 +1600,7 @@
 
         <div class="force-meter">
           <div class="force-header">
-            <span class="force-name">Drag</span>
+            <span class="force-name">Drag <button class="help-tip" data-tip="Normalized aerodynamic resistance derived from altitude and groundspeed. Source: frontend flight-state visualization, not telemetry." aria-label="About drag">i</button></span>
             <span class="force-val" id="dragVal">0%</span>
           </div>
           <div class="force-track"><div class="force-fill drag" id="dragFill"></div></div>
@@ -1588,7 +1608,7 @@
 
         <div class="force-meter">
           <div class="force-header">
-            <span class="force-name">Lift</span>
+            <span class="force-name">Lift <button class="help-tip" data-tip="Normalized lift demand derived from flight phase and vertical rate. Source: frontend flight-state visualization, not telemetry." aria-label="About lift">i</button></span>
             <span class="force-val" id="liftVal">0%</span>
           </div>
           <div class="force-track"><div class="force-fill lift" id="liftFill"></div></div>
@@ -1603,19 +1623,19 @@
         <div class="data-source derived">Calculated from fuel-burn progression</div>
 
         <div class="mass-section-label">Aircraft State</div>
-        <div class="mass-row"><span class="mass-label">Takeoff Mass</span><span class="mass-val" id="massTakeoff">&mdash;</span></div>
-        <div class="mass-row highlight"><span class="mass-label">Current Mass</span><span class="mass-val" id="massCurrent">&mdash;</span></div>
-        <div class="mass-row"><span class="mass-label">Est. Landing Mass</span><span class="mass-val" id="massLanding">&mdash;</span></div>
+        <div class="mass-row"><span class="mass-label">Takeoff Mass <button class="help-tip" data-tip="Operating empty mass + assumed payload + replay fuel at departure. Source: frontend mass model." aria-label="About takeoff mass">i</button></span><span class="mass-val" id="massTakeoff">&mdash;</span></div>
+        <div class="mass-row highlight"><span class="mass-label">Current Mass <button class="help-tip" data-tip="Takeoff mass minus cumulative measured replay fuel burn. Source: frontend mass model plus saved fuel labels." aria-label="About current mass">i</button></span><span class="mass-val" id="massCurrent">&mdash;</span></div>
+        <div class="mass-row"><span class="mass-label">Est. Landing Mass <button class="help-tip" data-tip="Estimated end mass using the frontend reserve-fuel assumption. This is not a measured landing weight." aria-label="About estimated landing mass">i</button></span><span class="mass-val" id="massLanding">&mdash;</span></div>
 
         <div class="mass-section-label">Fuel State</div>
-        <div class="mass-row"><span class="mass-label">Fuel Remaining</span><span class="mass-val" id="hudFuelRemaining">&mdash;</span></div>
-        <div class="mass-row"><span class="mass-label">Cumulative Burn</span><span class="mass-val" id="massFuelBurn">&mdash;</span></div>
-        <div class="mass-row"><span class="mass-label">Burn Rate</span><span class="mass-val" id="massBurnRate">&mdash;</span></div>
+        <div class="mass-row"><span class="mass-label">Fuel Remaining <button class="help-tip" data-tip="Initial replay fuel minus cumulative measured fuel burn. Source: saved ground-truth labels and frontend calculation." aria-label="About fuel remaining">i</button></span><span class="mass-val" id="hudFuelRemaining">&mdash;</span></div>
+        <div class="mass-row"><span class="mass-label">Cumulative Burn <button class="help-tip" data-tip="Measured replay fuel consumed up to the current point. Source: saved ground-truth interval labels." aria-label="About cumulative burn">i</button></span><span class="mass-val" id="massFuelBurn">&mdash;</span></div>
+        <div class="mass-row"><span class="mass-label">Burn Rate <button class="help-tip" data-tip="Fuel used per second for the active interval. Source: saved interval fuel label divided by its duration." aria-label="About burn rate">i</button></span><span class="mass-val" id="massBurnRate">&mdash;</span></div>
         <div class="mass-row"><span class="mass-label">Fuel Fraction</span><span class="mass-val" id="massFuelFrac">&mdash;</span></div>
 
         <div class="mass-section-label">Derived</div>
         <div class="mass-row"><span class="mass-label">Mass Rate</span><span class="mass-val" id="massRate">&mdash;</span></div>
-        <div class="mass-row"><span class="mass-label">Wing Loading</span><span class="mass-val" id="massWingLoad">&mdash;</span></div>
+        <div class="mass-row"><span class="mass-label">Wing Loading <button class="help-tip" data-tip="Estimated current aircraft mass divided by assumed A320-family wing area. Source: frontend mass model, not telemetry." aria-label="About wing loading">i</button></span><span class="mass-val" id="massWingLoad">&mdash;</span></div>
         <div class="mass-row"><span class="mass-label">Flight Phase</span><span class="mass-val" id="massPhase">&mdash;</span></div>
 
         <div class="mass-note">Model-estimated from fuel burn &middot; not telemetry</div>
@@ -1627,7 +1647,7 @@
         <div class="data-source measured">Saved PRC interval data</div>
 
         <div class="pred-section-label ground-truth">Ground Truth (Measured)</div>
-        <div class="pred-row"><span class="pred-label">Actual Fuel</span><span class="pred-val" id="predGt">&mdash;</span></div>
+        <div class="pred-row"><span class="pred-label">Actual Fuel <button class="help-tip" data-tip="Measured fuel burn label for the active replay interval. Source: saved PRC demo flight data." aria-label="About actual fuel">i</button></span><span class="pred-val" id="predGt">&mdash;</span></div>
 
         <div class="pred-section-label benchmark">Baseline Prediction</div>
         <div class="pred-row"><span class="pred-label">OpenAP Physics <button class="help-tip" data-tip="A physics-based baseline estimate used for comparison." aria-label="About OpenAP Physics">i</button></span><span class="pred-val" id="predOpenap">&mdash;</span></div>
@@ -1638,9 +1658,9 @@
         <div class="pred-sep"></div>
 
         <div class="pred-section-label error">Error Analysis</div>
-        <div class="pred-row"><span class="pred-label">OpenAP Error</span><span class="pred-val err" id="predOpenapErr">&mdash;</span></div>
-        <div class="pred-row"><span class="pred-label">R3 Error</span><span class="pred-val err" id="predR3Err">&mdash;</span></div>
-        <div class="pred-row highlight"><span class="pred-label">R3 Relative Error</span><span class="pred-val" id="predR3Rel">&mdash;</span></div>
+        <div class="pred-row"><span class="pred-label">OpenAP Error <button class="help-tip" data-tip="Physics prediction minus measured fuel. Positive means over-prediction. Source: frontend comparison." aria-label="About OpenAP error">i</button></span><span class="pred-val err" id="predOpenapErr">&mdash;</span></div>
+        <div class="pred-row"><span class="pred-label">R3 Error <button class="help-tip" data-tip="R3 prediction minus measured fuel. Positive means over-prediction. Source: frontend comparison." aria-label="About R3 error">i</button></span><span class="pred-val err" id="predR3Err">&mdash;</span></div>
+        <div class="pred-row highlight"><span class="pred-label">R3 Relative Error <button class="help-tip" data-tip="Absolute R3 error divided by measured fuel for this interval. Source: frontend comparison." aria-label="About R3 relative error">i</button></span><span class="pred-val" id="predR3Rel">&mdash;</span></div>
         <div id="predImprovement" class="prediction-advantage positive">R3 comparison loading&hellip;</div>
 
         <div class="chart-toolbar" role="group" aria-label="Prediction chart view">
@@ -1669,8 +1689,8 @@
         <div class="data-source static">Official evaluation snapshot</div>
 
         <div class="bench-row"><span class="bench-label">R3 Combined RMSE <button class="help-tip" data-tip="Root Mean Squared Error across the Rank and Final test splits. Lower is better." aria-label="About RMSE">i</button></span><span class="bench-val">221.33 kg</span></div>
-        <div class="bench-row highlight"><span class="bench-label">R3 Final RMSE</span><span class="bench-val">213.73 kg</span></div>
-        <div class="bench-row"><span class="bench-label">Baseline RMSE</span><span class="bench-val">228.25 kg</span></div>
+        <div class="bench-row highlight"><span class="bench-label">R3 Final RMSE <button class="help-tip" data-tip="Final test-split Root Mean Squared Error for R3. Source: static evaluation snapshot; lower is better." aria-label="About R3 final RMSE">i</button></span><span class="bench-val">213.73 kg</span></div>
+        <div class="bench-row"><span class="bench-label">Baseline RMSE <button class="help-tip" data-tip="Physics-baseline Root Mean Squared Error on the evaluation set. Source: static evaluation snapshot; lower is better." aria-label="About baseline RMSE">i</button></span><span class="bench-val">228.25 kg</span></div>
         <div class="bench-sep"></div>
         <div class="bench-row"><span class="bench-label">Rank-split RMSE</span><span class="bench-val">232.53 kg</span></div>
         <div class="bench-row improve"><span class="bench-label">Final-split RMSE</span><span class="bench-val">213.73 kg</span></div>
