@@ -29,6 +29,7 @@ const state = {
   chartPhysicsRate: [],
   chartR3Rate: [],
   chartMode: 'cumulative',
+  chartLayout: 'overlay',
   completed: false,
   controlsAbort: null,
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
@@ -44,11 +45,11 @@ function grab() {
     'thrustVal', 'thrustFill', 'dragVal', 'dragFill', 'liftVal', 'liftFill',
     'massTakeoff', 'massCurrent', 'massLanding', 'hudFuelRemaining', 'massFuelBurn',
     'massBurnRate', 'massFuelFrac', 'massRate', 'massWingLoad', 'massPhase',
-    'predGt', 'predOpenap', 'predR3', 'predOpenapErr', 'predR3Err', 'predR3Rel', 'predChart',
+    'predGt', 'predOpenap', 'predR3', 'predOpenapErr', 'predR3Err', 'predR3Rel', 'predImprovement', 'predChart', 'predChartExpanded',
     'timeline', 'liveRegion', 'completionModal', 'summaryFuel', 'summaryR3Error',
     'summaryPhysicsError', 'summaryImprovement', 'completionRoute',
     'aircraftHoverCard', 'aircraftHoverAltitude', 'aircraftHoverSpeed',
-    'aircraftHoverHeading', 'aircraftHoverEta',
+    'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal',
   ].forEach((id) => (els[id] = document.getElementById(id)))
 }
 
@@ -375,6 +376,21 @@ function bindControls(viewer) {
       drawChart()
     }, listenerOptions)
   })
+  document.querySelectorAll('[data-chart-layout]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.chartLayout = button.dataset.chartLayout
+      document.querySelectorAll('[data-chart-layout]').forEach((item) => item.classList.toggle('active', item === button))
+      drawChart()
+    }, listenerOptions)
+  })
+  document.getElementById('expandComparisonBtn').addEventListener('click', () => setComparisonOpen(true), listenerOptions)
+  document.getElementById('comparisonClose').addEventListener('click', () => setComparisonOpen(false), listenerOptions)
+  els.comparisonModal.addEventListener('click', (event) => {
+    if (event.target === els.comparisonModal) setComparisonOpen(false)
+  }, listenerOptions)
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && els.comparisonModal.classList.contains('open')) setComparisonOpen(false)
+  }, listenerOptions)
   els.timeline.addEventListener('input', () => {
     const fraction = Number(els.timeline.value) / Number(els.timeline.max)
     viewer.clock.currentTime = Cesium.JulianDate.addSeconds(viewer.clock.startTime, fraction * state.totalDurationS, new Cesium.JulianDate())
@@ -496,6 +512,9 @@ function updatePredictionComparison(iv, idx, cumGt, cumPhys, cumR3) {
   const physErr = phys - gt
   const r3Err = r3 - gt
   const r3RelErr = gt > 0 ? (Math.abs(r3Err) / gt) * 100 : 0
+  const baselineAbsErr = Math.abs(physErr)
+  const r3AbsErr = Math.abs(r3Err)
+  const improvement = baselineAbsErr > 0 ? (1 - r3AbsErr / baselineAbsErr) * 100 : 0
 
   els.predGt.textContent = `${gt.toFixed(0)} kg`
   els.predOpenap.textContent = `${phys.toFixed(0)} kg`
@@ -503,6 +522,11 @@ function updatePredictionComparison(iv, idx, cumGt, cumPhys, cumR3) {
   els.predOpenapErr.textContent = `${physErr >= 0 ? '+' : ''}${physErr.toFixed(0)} kg`
   els.predR3Err.textContent = `${r3Err >= 0 ? '+' : ''}${r3Err.toFixed(0)} kg`
   els.predR3Rel.textContent = `${r3RelErr.toFixed(1)}%`
+  els.predImprovement.textContent = improvement >= 0
+    ? `R3 lowers interval error by ${improvement.toFixed(0)}%`
+    : `R3 interval error is ${Math.abs(improvement).toFixed(0)}% higher`
+  els.predImprovement.classList.toggle('positive', improvement >= 0)
+  els.predImprovement.classList.toggle('negative', improvement < 0)
 
   // Chart data (sample every few intervals).
   if (state.chartActual.length <= idx) {
@@ -516,8 +540,18 @@ function updatePredictionComparison(iv, idx, cumGt, cumPhys, cumR3) {
   }
 }
 
+function setComparisonOpen(open) {
+  els.comparisonModal.classList.toggle('open', open)
+  els.comparisonModal.setAttribute('aria-hidden', String(!open))
+  if (open) drawChart()
+}
+
 function drawChart() {
-  const canvas = els.predChart
+  drawChartCanvas(els.predChart)
+  drawChartCanvas(els.predChartExpanded)
+}
+
+function drawChartCanvas(canvas) {
   if (!canvas) return
   const ctx = canvas.getContext('2d')
   const W = canvas.width
@@ -531,53 +565,52 @@ function drawChart() {
 
   const maxVal = Math.max(...actual, ...phys, ...r3, 1)
 
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)'
-  ctx.lineWidth = 1
-  for (let line = 1; line < 4; line++) {
-    const y = (H / 4) * line
+  const trace = (values, top, height, color, dashed = false) => {
+    ctx.strokeStyle = color
+    ctx.lineWidth = 1.5
+    ctx.setLineDash(dashed ? [3, 3] : [])
     ctx.beginPath()
-    ctx.moveTo(4, y)
-    ctx.lineTo(W - 4, y)
+    values.forEach((value, index) => {
+      const x = (index / Math.max(1, values.length - 1)) * (W - 8) + 4
+      const y = top + height - 5 - (value / maxVal) * (height - 12)
+      if (index === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    })
     ctx.stroke()
   }
 
-  // OpenAP (white, dashed).
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)'
-  ctx.lineWidth = 1
-  ctx.setLineDash([3, 3])
-  ctx.beginPath()
-  phys.forEach((v, i) => {
-    const x = (i / Math.max(1, phys.length - 1)) * (W - 8) + 4
-    const y = H - 6 - (v / maxVal) * (H - 12)
-    if (i === 0) ctx.moveTo(x, y)
-    else ctx.lineTo(x, y)
-  })
-  ctx.stroke()
+  const grid = (top, height) => {
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'
+    ctx.lineWidth = 1
+    ctx.setLineDash([])
+    for (let line = 1; line < 3; line++) {
+      const y = top + (height / 3) * line
+      ctx.beginPath()
+      ctx.moveTo(4, y)
+      ctx.lineTo(W - 4, y)
+      ctx.stroke()
+    }
+  }
 
-  // Ground truth (white, solid).
-  ctx.strokeStyle = '#ffffff'
-  ctx.lineWidth = 1.5
+  if (state.chartLayout === 'split') {
+    const half = Math.floor(H / 2)
+    grid(0, half)
+    grid(half, half)
+    ctx.fillStyle = 'rgba(255,255,255,.58)'
+    ctx.font = '700 9px system-ui'
+    ctx.fillText('PHYSICS BASELINE', 8, 12)
+    ctx.fillText('AEROTWIN R3', 8, half + 12)
+    trace(actual, 0, half, '#ffffff')
+    trace(phys, 0, half, 'rgba(255,255,255,.5)', true)
+    trace(actual, half, half, '#ffffff')
+    trace(r3, half, half, '#dc1414')
+  } else {
+    grid(0, H)
+    trace(phys, 0, H, 'rgba(255,255,255,.5)', true)
+    trace(actual, 0, H, '#ffffff')
+    trace(r3, 0, H, '#dc1414')
+  }
   ctx.setLineDash([])
-  ctx.beginPath()
-  actual.forEach((v, i) => {
-    const x = (i / Math.max(1, actual.length - 1)) * (W - 8) + 4
-    const y = H - 6 - (v / maxVal) * (H - 12)
-    if (i === 0) ctx.moveTo(x, y)
-    else ctx.lineTo(x, y)
-  })
-  ctx.stroke()
-
-  // R3 (red).
-  ctx.strokeStyle = '#dc1414'
-  ctx.lineWidth = 1.5
-  ctx.beginPath()
-  r3.forEach((v, i) => {
-    const x = (i / Math.max(1, r3.length - 1)) * (W - 8) + 4
-    const y = H - 6 - (v / maxVal) * (H - 12)
-    if (i === 0) ctx.moveTo(x, y)
-    else ctx.lineTo(x, y)
-  })
-  ctx.stroke()
 }
 
 function toggleLibrary(open) {
