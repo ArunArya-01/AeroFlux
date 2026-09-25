@@ -953,7 +953,20 @@
       .report-table th, .report-table td { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.09); text-align: left; }
       .report-table th { color: var(--muted); font-size: 9px; letter-spacing: .65px; text-transform: uppercase; }
       .report-table td:last-child, .report-table th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+      .report-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .report-summary-grid .report-section { margin-top: 0; }
+      .report-chart-wrap { height: 260px; padding: 10px; border: 1px solid var(--panel-border); border-radius: 10px; background: rgba(0,0,0,.22); }
+      #reportChart { display: block; width: 100%; height: 100%; }
+      .report-chart-wrap.compact { height: 210px; }
+      #reportIntervalChart, #reportErrorChart { display: block; width: 100%; height: 100%; }
+      .report-chart-caption { margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+      .report-chart-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 9px 0 0; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .55px; }
+      .report-chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .report-chart-key { width: 10px; height: 10px; border-radius: 2px; background: #fff; }
+      .report-chart-key.physics { background: rgba(255,255,255,.55); }
+      .report-chart-key.r3 { background: #dc1414; }
       .report-note { margin: 20px 0 0; padding: 12px 14px; border-left: 3px solid var(--accent); background: rgba(237,28,28,.08); color: var(--text-dim); font-size: 11px; line-height: 1.5; }
+      .report-section, .report-chart-wrap { break-inside: avoid; }
       @media print {
         body * { visibility: hidden !important; }
         #flightReportModal, #flightReportModal * { visibility: visible !important; }
@@ -1388,6 +1401,7 @@
         .panel-card { padding: 12px; }
         .completion-grid { grid-template-columns: 1fr; }
         .report-kpis { grid-template-columns: 1fr 1fr; }
+        .report-summary-grid { grid-template-columns: 1fr; }
         .report-card { padding: 20px; }
         .research-grid { grid-template-columns: 1fr; }
         #flightLibrary { bottom: 10px; top: auto; }
@@ -1793,6 +1807,51 @@
             <tr><td>AeroTwin R3</td><td id="reportR3">—</td><td id="reportR3AbsError">—</td></tr>
           </tbody></table>
         </section>
+        <section class="report-section" aria-labelledby="reportChartTitle">
+          <h3 id="reportChartTitle">Cumulative fuel-burn replay</h3>
+          <div class="report-chart-wrap"><canvas id="reportChart" width="1400" height="460" aria-label="Final cumulative fuel-burn comparison chart"></canvas></div>
+          <div class="report-chart-legend"><span><i class="report-chart-key"></i>Measured</span><span><i class="report-chart-key physics"></i>Physics baseline</span><span><i class="report-chart-key r3"></i>AeroTwin R3</span></div>
+        </section>
+        <section class="report-section" aria-labelledby="reportQualityTitle">
+          <h3 id="reportQualityTitle">Prediction quality across the replay</h3>
+          <table class="report-table"><thead><tr><th>Metric</th><th>Physics baseline</th><th>AeroTwin R3</th></tr></thead><tbody>
+            <tr><td>Total predicted fuel</td><td id="reportPhysicsTotal">—</td><td id="reportR3Total">—</td></tr>
+            <tr><td>End-of-flight absolute error</td><td id="reportPhysicsFinalAbs">—</td><td id="reportR3FinalAbs">—</td></tr>
+            <tr><td>End-of-flight relative error</td><td id="reportPhysicsRelative">—</td><td id="reportR3Relative">—</td></tr>
+            <tr><td>Mean interval absolute error</td><td id="reportPhysicsMae">—</td><td id="reportR3Mae">—</td></tr>
+            <tr><td>Worst interval absolute error</td><td id="reportPhysicsWorst">—</td><td id="reportR3Worst">—</td></tr>
+          </tbody></table>
+        </section>
+        <section class="report-section" aria-labelledby="reportIntervalTitle">
+          <h3 id="reportIntervalTitle">Fuel burn by replay interval</h3>
+          <div class="report-chart-wrap compact"><canvas id="reportIntervalChart" width="1400" height="380" aria-label="Fuel burn for each replay interval"></canvas></div>
+          <p class="report-chart-caption">Each point is one stored replay interval. This view makes it easy to see when either method diverges from the measured fuel label.</p>
+        </section>
+        <section class="report-section" aria-labelledby="reportErrorChartTitle">
+          <h3 id="reportErrorChartTitle">Absolute prediction error by interval</h3>
+          <div class="report-chart-wrap compact"><canvas id="reportErrorChart" width="1400" height="380" aria-label="Absolute prediction error for each replay interval"></canvas></div>
+          <p class="report-chart-caption">Lower is better. The white trace is the Physics baseline; red is AeroTwin R3.</p>
+        </section>
+        <div class="report-summary-grid report-section">
+          <section class="report-section" aria-labelledby="reportMassTitle">
+            <h3 id="reportMassTitle">Aircraft &amp; fuel state</h3>
+            <table class="report-table"><tbody>
+              <tr><td>Takeoff mass</td><td id="reportTakeoffMass">—</td></tr>
+              <tr><td>Final mass</td><td id="reportFinalMass">—</td></tr>
+              <tr><td>Fuel remaining</td><td id="reportFuelRemaining">—</td></tr>
+              <tr><td>Final wing loading</td><td id="reportWingLoading">—</td></tr>
+            </tbody></table>
+          </section>
+          <section class="report-section" aria-labelledby="reportPerformanceTitle">
+            <h3 id="reportPerformanceTitle">Final flight state</h3>
+            <table class="report-table"><tbody>
+              <tr><td>Flight phase</td><td id="reportPhase">—</td></tr>
+              <tr><td>Last interval burn rate</td><td id="reportBurnRate">—</td></tr>
+              <tr><td>Thrust demand</td><td id="reportThrust">—</td></tr>
+              <tr><td>Drag / lift demand</td><td id="reportDragLift">—</td></tr>
+            </tbody></table>
+          </section>
+        </div>
         <section class="report-section" aria-labelledby="reportProvenanceTitle">
           <h3 id="reportProvenanceTitle">Data provenance</h3>
           <p class="report-note">This report uses the currently replayed PRC demo-flight interval labels and the corresponding saved Physics baseline and AeroTwin R3 predictions. It is a demo replay summary, not an operational dispatch report or a live aircraft measurement.</p>

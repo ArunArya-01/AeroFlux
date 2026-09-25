@@ -53,7 +53,12 @@ function grab() {
     'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal', 'metricTooltip',
     'flightReportModal', 'reportRoute', 'reportDuration', 'reportFuel', 'reportR3Error',
     'reportImprovement', 'reportMeasured', 'reportPhysics', 'reportPhysicsError',
-    'reportR3', 'reportR3AbsError',
+    'reportR3', 'reportR3AbsError', 'reportChart', 'reportTakeoffMass', 'reportFinalMass',
+    'reportFuelRemaining', 'reportWingLoading', 'reportPhase', 'reportBurnRate',
+    'reportThrust', 'reportDragLift', 'reportIntervalChart', 'reportErrorChart',
+    'reportPhysicsTotal', 'reportR3Total', 'reportPhysicsFinalAbs', 'reportR3FinalAbs',
+    'reportPhysicsRelative', 'reportR3Relative', 'reportPhysicsMae', 'reportR3Mae',
+    'reportPhysicsWorst', 'reportR3Worst',
   ].forEach((id) => (els[id] = document.getElementById(id)))
 }
 
@@ -613,18 +618,84 @@ function setComparisonOpen(open) {
 function drawChart() {
   drawChartCanvas(els.predChart)
   drawChartCanvas(els.predChartExpanded)
+  drawChartCanvas(els.reportChart, { mode: 'cumulative', layout: 'overlay' })
+  drawReportCharts()
 }
 
-function drawChartCanvas(canvas) {
+function drawReportCharts() {
+  const actual = state.intervals.map((interval) => interval.groundTruth)
+  const physics = state.intervals.map((interval) => interval.physicsFuelKg)
+  const r3 = state.intervals.map((interval) => interval.r3Prediction)
+  drawReportLineChart(els.reportIntervalChart, [
+    { values: actual, color: '#ffffff' },
+    { values: physics, color: 'rgba(255,255,255,.52)', dashed: true },
+    { values: r3, color: '#dc1414' },
+  ])
+  drawReportLineChart(els.reportErrorChart, [
+    { values: physics.map((value, index) => Math.abs(value - actual[index])), color: 'rgba(255,255,255,.62)', dashed: true },
+    { values: r3.map((value, index) => Math.abs(value - actual[index])), color: '#dc1414' },
+  ])
+}
+
+function drawReportLineChart(canvas, series) {
   if (!canvas) return
   const ctx = canvas.getContext('2d')
   const W = canvas.width
   const H = canvas.height
   ctx.clearRect(0, 0, W, H)
+  if (canvas === els.reportChart) {
+    // Keep the chart legible in the white print/PDF layout as well as the dark UI.
+    ctx.fillStyle = '#101318'
+    ctx.fillRect(0, 0, W, H)
+  }
+  const max = Math.max(...series.flatMap((line) => line.values), 1)
+  const pad = { x: 34, y: 22 }
 
-  const actual = state.chartMode === 'rate' ? state.chartActualRate : state.chartActual
-  const phys = state.chartMode === 'rate' ? state.chartPhysicsRate : state.chartPhysics
-  const r3 = state.chartMode === 'rate' ? state.chartR3Rate : state.chartR3
+  ctx.strokeStyle = 'rgba(255,255,255,.1)'
+  ctx.lineWidth = 1
+  ctx.setLineDash([])
+  for (let line = 0; line < 4; line++) {
+    const y = pad.y + ((H - pad.y * 2) / 3) * line
+    ctx.beginPath()
+    ctx.moveTo(pad.x, y)
+    ctx.lineTo(W - 8, y)
+    ctx.stroke()
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.58)'
+  ctx.font = '600 20px system-ui'
+  ctx.fillText(`${max.toFixed(0)} kg`, 2, pad.y + 6)
+  ctx.fillText('0', 14, H - pad.y + 6)
+
+  series.forEach(({ values, color, dashed }) => {
+    ctx.strokeStyle = color
+    ctx.lineWidth = 4
+    ctx.setLineDash(dashed ? [10, 9] : [])
+    ctx.beginPath()
+    values.forEach((value, index) => {
+      const x = pad.x + (index / Math.max(1, values.length - 1)) * (W - pad.x - 8)
+      const y = H - pad.y - (value / max) * (H - pad.y * 2)
+      if (index === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    })
+    ctx.stroke()
+  })
+  ctx.setLineDash([])
+}
+
+function drawChartCanvas(canvas, options = {}) {
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  const W = canvas.width
+  const H = canvas.height
+  ctx.clearRect(0, 0, W, H)
+  ctx.fillStyle = '#101318'
+  ctx.fillRect(0, 0, W, H)
+
+  const mode = options.mode || state.chartMode
+  const layout = options.layout || state.chartLayout
+  const actual = mode === 'rate' ? state.chartActualRate : state.chartActual
+  const phys = mode === 'rate' ? state.chartPhysicsRate : state.chartPhysics
+  const r3 = mode === 'rate' ? state.chartR3Rate : state.chartR3
   if (actual.length === 0) return
 
   const maxVal = Math.max(...actual, ...phys, ...r3, 1)
@@ -656,7 +727,7 @@ function drawChartCanvas(canvas) {
     }
   }
 
-  if (state.chartLayout === 'split') {
+  if (layout === 'split') {
     const half = Math.floor(H / 2)
     grid(0, half)
     grid(half, half)
@@ -702,8 +773,23 @@ function showCompletion(fuel, physics, r3) {
 }
 
 function populateFlightReport(fuel, physics, r3, improvement) {
+  const actualValues = state.intervals.map((interval) => interval.groundTruth)
+  const physicsValues = state.intervals.map((interval) => interval.physicsFuelKg)
+  const r3Values = state.intervals.map((interval) => interval.r3Prediction)
+  // Use the complete stored replay for the printable report, even if the clock
+  // callback arrives a fraction before its final sample.
+  fuel = actualValues.reduce((sum, value) => sum + value, 0)
+  physics = physicsValues.reduce((sum, value) => sum + value, 0)
+  r3 = r3Values.reduce((sum, value) => sum + value, 0)
   const physicsError = physics - fuel
   const r3Error = r3 - fuel
+  improvement = Math.abs(physicsError) > 0 ? (1 - Math.abs(r3Error) / Math.abs(physicsError)) * 100 : 0
+  const physicsIntervalErrors = physicsValues.map((value, index) => Math.abs(value - actualValues[index]))
+  const r3IntervalErrors = r3Values.map((value, index) => Math.abs(value - actualValues[index]))
+  const mean = (values) => values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1)
+  const takeoffMass = 42600 + 15000 + state.totalFuelKg
+  const finalMass = takeoffMass - fuel
+  const fuelRemaining = Math.max(0, state.totalFuelKg - fuel)
   els.reportRoute.textContent = `${els.completionRoute.textContent} · ${els.hudAircraft.textContent}`
   els.reportDuration.textContent = fmtTime(state.totalDurationS)
   els.reportFuel.textContent = `${fuel.toFixed(0)} kg`
@@ -714,6 +800,25 @@ function populateFlightReport(fuel, physics, r3, improvement) {
   els.reportPhysicsError.textContent = `${Math.abs(physicsError).toFixed(0)} kg`
   els.reportR3.textContent = `${r3.toFixed(0)} kg`
   els.reportR3AbsError.textContent = `${Math.abs(r3Error).toFixed(0)} kg`
+  els.reportPhysicsTotal.textContent = `${physics.toFixed(0)} kg`
+  els.reportR3Total.textContent = `${r3.toFixed(0)} kg`
+  els.reportPhysicsFinalAbs.textContent = `${Math.abs(physicsError).toFixed(0)} kg`
+  els.reportR3FinalAbs.textContent = `${Math.abs(r3Error).toFixed(0)} kg`
+  els.reportPhysicsRelative.textContent = `${(Math.abs(physicsError) / Math.max(fuel, 1) * 100).toFixed(2)}%`
+  els.reportR3Relative.textContent = `${(Math.abs(r3Error) / Math.max(fuel, 1) * 100).toFixed(2)}%`
+  els.reportPhysicsMae.textContent = `${mean(physicsIntervalErrors).toFixed(1)} kg`
+  els.reportR3Mae.textContent = `${mean(r3IntervalErrors).toFixed(1)} kg`
+  els.reportPhysicsWorst.textContent = `${Math.max(...physicsIntervalErrors, 0).toFixed(0)} kg`
+  els.reportR3Worst.textContent = `${Math.max(...r3IntervalErrors, 0).toFixed(0)} kg`
+  els.reportTakeoffMass.textContent = `${(takeoffMass / 1000).toFixed(1)} t`
+  els.reportFinalMass.textContent = `${(finalMass / 1000).toFixed(1)} t`
+  els.reportFuelRemaining.textContent = `${fuelRemaining.toFixed(0)} kg`
+  els.reportWingLoading.textContent = `${(finalMass / 122.6).toFixed(0)} kg/m²`
+  els.reportPhase.textContent = els.massPhase.textContent
+  els.reportBurnRate.textContent = els.massBurnRate.textContent
+  els.reportThrust.textContent = els.thrustVal.textContent
+  els.reportDragLift.textContent = `${els.dragVal.textContent} / ${els.liftVal.textContent}`
+  drawChart()
 }
 
 function setFlightReportOpen(open) {
