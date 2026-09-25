@@ -40,6 +40,7 @@ const state = {
   heatmapSegments: [],
   weatherEnabled: false,
   weatherEntities: [],
+  aircraftHoverActive: false,
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -429,54 +430,54 @@ function updateWeatherReadout(interval, progress) {
 }
 
 function bindAircraftHover(viewer) {
-  const hideHover = () => {
-    els.aircraftHoverCard.classList.remove('visible')
-    els.aircraftHoverCard.setAttribute('aria-hidden', 'true')
-    viewer.canvas.style.cursor = 'default'
-  }
-
   viewer.screenSpaceEventHandler.setInputAction((movement) => {
     const picked = viewer.scene.pick(movement.endPosition)
     if (!picked || picked.id !== state.plane) {
-      hideHover()
+      hideAircraftHover(viewer)
       return
     }
-
-    const position = state.plane.position.getValue(viewer.clock.currentTime)
-    const screen = position && Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, position)
-    if (!screen) {
-      hideHover()
-      return
-    }
-
-    const t = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(
-      viewer.clock.currentTime,
-      viewer.clock.startTime,
-    ) / state.totalDurationS))
-    const intervalIndex = Math.min(state.intervals.length - 1, Math.floor(t * (state.intervals.length - 1)))
-    const interval = state.intervals[intervalIndex]
-    const cartographic = Cesium.Cartographic.fromCartesian(position)
-    const futureTime = Cesium.JulianDate.addSeconds(viewer.clock.currentTime, 30, new Cesium.JulianDate())
-    const future = state.plane.position.getValue(futureTime)
-
-    let headingDegrees = 0
-    if (future) {
-      const geodesic = new Cesium.EllipsoidGeodesic(cartographic, Cesium.Cartographic.fromCartesian(future))
-      headingDegrees = (Cesium.Math.toDegrees(geodesic.startHeading) + 360) % 360
-    }
-    const compass = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(headingDegrees / 22.5) % 16]
-    const remaining = Math.max(0, state.totalDurationS * (1 - t))
-
-    els.aircraftHoverAltitude.textContent = `${(cartographic.height / 1000).toFixed(1)} km`
-    els.aircraftHoverSpeed.textContent = `${Math.round((interval.groundSpeedMps || 0) * 1.94384)} kt`
-    els.aircraftHoverHeading.textContent = `${String(Math.round(headingDegrees)).padStart(3, '0')}° ${compass}`
-    els.aircraftHoverEta.textContent = fmtTime(remaining)
-    els.aircraftHoverCard.style.left = `${screen.x}px`
-    els.aircraftHoverCard.style.top = `${screen.y}px`
-    els.aircraftHoverCard.classList.add('visible')
-    els.aircraftHoverCard.setAttribute('aria-hidden', 'false')
-    viewer.canvas.style.cursor = 'pointer'
+    state.aircraftHoverActive = true
+    updateAircraftHover(viewer)
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+}
+
+function hideAircraftHover(viewer) {
+  state.aircraftHoverActive = false
+  els.aircraftHoverCard.classList.remove('visible')
+  els.aircraftHoverCard.setAttribute('aria-hidden', 'true')
+  viewer.canvas.style.cursor = 'default'
+}
+
+function updateAircraftHover(viewer) {
+  if (!state.aircraftHoverActive) return
+  const position = state.plane.position.getValue(viewer.clock.currentTime)
+  const screen = position && Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, position)
+  if (!screen) return hideAircraftHover(viewer)
+
+  const t = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, viewer.clock.startTime) / state.totalDurationS))
+  const intervalIndex = Math.min(state.intervals.length - 1, Math.floor(t * (state.intervals.length - 1)))
+  const interval = state.intervals[intervalIndex]
+  const cartographic = Cesium.Cartographic.fromCartesian(position)
+  const futureTime = Cesium.JulianDate.addSeconds(viewer.clock.currentTime, 30, new Cesium.JulianDate())
+  const future = state.plane.position.getValue(futureTime)
+
+  let headingDegrees = 0
+  if (future) {
+    const geodesic = new Cesium.EllipsoidGeodesic(cartographic, Cesium.Cartographic.fromCartesian(future))
+    headingDegrees = (Cesium.Math.toDegrees(geodesic.startHeading) + 360) % 360
+  }
+  const compass = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(headingDegrees / 22.5) % 16]
+  const remaining = Math.max(0, state.totalDurationS * (1 - t))
+
+  els.aircraftHoverAltitude.textContent = `${(cartographic.height / 1000).toFixed(1)} km`
+  els.aircraftHoverSpeed.textContent = `${Math.round((interval.groundSpeedMps || 0) * 1.94384)} kt`
+  els.aircraftHoverHeading.textContent = `${String(Math.round(headingDegrees)).padStart(3, '0')}° ${compass}`
+  els.aircraftHoverEta.textContent = fmtTime(remaining)
+  els.aircraftHoverCard.style.left = `${screen.x}px`
+  els.aircraftHoverCard.style.top = `${screen.y}px`
+  els.aircraftHoverCard.classList.add('visible')
+  els.aircraftHoverCard.setAttribute('aria-hidden', 'false')
+  viewer.canvas.style.cursor = 'pointer'
 }
 
 function setOverviewCamera(viewer, duration = 0.65) {
@@ -812,6 +813,7 @@ function tick(viewer, clock) {
 
   const elapsed = t * state.totalDurationS
   updateMiniMap(t)
+  updateAircraftHover(viewer)
 
   els.hudProgress.textContent = `${(t * 100).toFixed(1)}%`
   els.progressBarFill.style.width = `${t * 100}%`
