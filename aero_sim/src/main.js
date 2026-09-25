@@ -60,6 +60,7 @@ function grab() {
     'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal', 'metricTooltip',
     'miniMap', 'miniMapCanvas',
     'weatherReadout', 'weatherWind', 'weatherTemp', 'weatherCloud', 'weatherTurbulence',
+    'commandPalette', 'commandSearch', 'commandList', 'commandEmpty',
     'benchmarkModal',
     'flightReportModal', 'reportRoute', 'reportDuration', 'reportFuel', 'reportR3Error',
     'reportImprovement', 'reportMeasured', 'reportPhysics', 'reportPhysicsError',
@@ -608,18 +609,11 @@ function bindControls(viewer) {
   document.querySelectorAll('#cameraMode .cn-btn').forEach((btn) => {
     if (!btn.dataset.cam) return
     btn.addEventListener('click', () => {
-      state.cameraMode = btn.dataset.cam
-      document.querySelectorAll('#cameraMode .cn-btn').forEach((b) => b.classList.toggle('active', b === btn))
-      if (state.cameraMode === 'overview') setOverviewCamera(viewer)
-      else updateCamera(viewer, viewer.clock)
-      const progress = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, viewer.clock.startTime) / state.totalDurationS))
-      updateMiniMap(progress)
+      setCameraMode(viewer, btn.dataset.cam)
     }, listenerOptions)
   })
   document.getElementById('btnFocus').addEventListener('click', (event) => {
-    const focused = document.body.classList.toggle('focus-mode')
-    event.currentTarget.classList.toggle('active', focused)
-    event.currentTarget.textContent = focused ? 'Exit focus' : 'Focus'
+    toggleFocusMode(event.currentTarget)
   }, listenerOptions)
   document.getElementById('btnTheme').addEventListener('click', (event) => {
     const light = document.body.classList.toggle('light-theme')
@@ -651,6 +645,12 @@ function bindControls(viewer) {
     setWeatherEnabled(!state.weatherEnabled)
     els.liveRegion.textContent = state.weatherEnabled ? 'Demo weather layer enabled.' : 'Demo weather layer disabled.'
   }, listenerOptions)
+  document.getElementById('commandPaletteBtn').addEventListener('click', () => setCommandPaletteOpen(true), listenerOptions)
+  els.commandSearch.addEventListener('input', () => filterCommandPalette(), listenerOptions)
+  els.commandList.addEventListener('click', (event) => {
+    const action = event.target.closest('[data-command]')
+    if (action) runCommand(viewer, action.dataset.command)
+  }, listenerOptions)
   document.querySelectorAll('[data-chart-mode]').forEach((button) => {
     button.addEventListener('click', () => {
       state.chartMode = button.dataset.chartMode
@@ -679,6 +679,11 @@ function bindControls(viewer) {
     if (event.key === 'Escape' && els.comparisonModal.classList.contains('open')) setComparisonOpen(false)
     if (event.key === 'Escape' && els.benchmarkModal.classList.contains('open')) setBenchmarkOpen(false)
     if (event.key === 'Escape' && els.flightReportModal.classList.contains('open')) setFlightReportOpen(false)
+    if (event.key === 'Escape' && els.commandPalette.classList.contains('open')) setCommandPaletteOpen(false)
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault()
+      setCommandPaletteOpen(true)
+    }
   }, listenerOptions)
   els.timeline.addEventListener('input', () => {
     const fraction = Number(els.timeline.value) / Number(els.timeline.max)
@@ -709,6 +714,53 @@ function setMobilePanel(panel) {
     button.classList.toggle('active', active)
     button.setAttribute('aria-pressed', String(active))
   })
+}
+
+function setCameraMode(viewer, mode) {
+  state.cameraMode = mode
+  document.querySelectorAll('#cameraMode .cn-btn').forEach((button) => {
+    if (button.dataset.cam) button.classList.toggle('active', button.dataset.cam === mode)
+  })
+  if (mode === 'overview') setOverviewCamera(viewer)
+  else updateCamera(viewer, viewer.clock)
+  const progress = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, viewer.clock.startTime) / state.totalDurationS))
+  updateMiniMap(progress)
+}
+
+function toggleFocusMode(button = document.getElementById('btnFocus')) {
+  const focused = document.body.classList.toggle('focus-mode')
+  button.classList.toggle('active', focused)
+  button.textContent = focused ? 'Exit focus' : 'Focus'
+}
+
+function setCommandPaletteOpen(open) {
+  els.commandPalette.classList.toggle('open', open)
+  els.commandPalette.setAttribute('aria-hidden', String(!open))
+  if (!open) return
+  els.commandSearch.value = ''
+  filterCommandPalette()
+  requestAnimationFrame(() => els.commandSearch.focus())
+}
+
+function filterCommandPalette() {
+  const query = els.commandSearch.value.trim().toLowerCase()
+  let visible = 0
+  els.commandList.querySelectorAll('[data-command]').forEach((item) => {
+    const match = item.textContent.toLowerCase().includes(query)
+    item.hidden = !match
+    if (match) visible++
+  })
+  els.commandEmpty.classList.toggle('visible', visible === 0)
+}
+
+function runCommand(viewer, command) {
+  if (command.startsWith('phase:')) jumpToPhase(viewer, command.slice(6))
+  else if (command.startsWith('view:')) setCameraMode(viewer, command.slice(5))
+  else if (command === 'comparison') setComparisonOpen(true)
+  else if (command === 'benchmark') setBenchmarkOpen(true)
+  else if (command === 'weather') setWeatherEnabled(!state.weatherEnabled)
+  else if (command === 'focus') toggleFocusMode()
+  setCommandPaletteOpen(false)
 }
 
 function jumpToPhase(viewer, phase) {

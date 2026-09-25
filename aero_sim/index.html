@@ -123,6 +123,17 @@
       .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
       .weather-grid div { display: flex; justify-content: space-between; gap: 6px; color: var(--muted); font-size: 10px; }
       .weather-grid b { color: var(--text); font-variant-numeric: tabular-nums; }
+      #commandPalette { position: fixed; z-index: 120; top: 18vh; left: 50%; display: none; width: min(520px, calc(100vw - 28px)); padding: 10px; border: 1px solid rgba(255,255,255,.24); border-radius: 12px; background: rgba(10,15,23,.97); box-shadow: 0 22px 70px rgba(0,0,0,.55); transform: translateX(-50%); }
+      #commandPalette.open { display: block; }
+      .command-search { width: 100%; box-sizing: border-box; padding: 12px 13px; border: 1px solid var(--panel-border); border-radius: 8px; outline: none; background: rgba(255,255,255,.06); color: var(--text); font: 600 13px var(--font); }
+      .command-search:focus { border-color: rgba(237,28,28,.72); }
+      .command-hint { display: flex; justify-content: space-between; padding: 9px 4px 7px; color: var(--muted); font-size: 9px; letter-spacing: .55px; text-transform: uppercase; }
+      .command-list { display: grid; gap: 3px; max-height: min(48vh, 380px); overflow-y: auto; }
+      .command-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 10px 11px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--text-dim); cursor: pointer; font: 600 12px var(--font); text-align: left; }
+      .command-item:hover, .command-item:focus-visible { border-color: rgba(237,28,28,.42); background: rgba(237,28,28,.1); color: var(--text); outline: none; }
+      .command-item small { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .55px; }
+      .command-empty { display: none; padding: 16px 10px; color: var(--muted); font-size: 12px; text-align: center; }
+      .command-empty.visible { display: block; }
       .aircraft-hover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       .aircraft-hover-title { color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
       .aircraft-hover-live { color: #4ee6b0; font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
@@ -1607,6 +1618,24 @@
     </aside>
 
     <div id="liveRegion" class="sr-only" aria-live="polite"></div>
+    <section id="commandPalette" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Mission control command palette">
+      <input id="commandSearch" class="command-search" type="search" autocomplete="off" placeholder="Search actions…" aria-label="Search simulator actions">
+      <div class="command-hint"><span>Mission control</span><span>Esc to close</span></div>
+      <div id="commandList" class="command-list">
+        <button class="command-item" data-command="phase:takeoff"><span>Jump to takeoff</span><small>Timeline</small></button>
+        <button class="command-item" data-command="phase:climb"><span>Jump to climb</span><small>Timeline</small></button>
+        <button class="command-item" data-command="phase:cruise"><span>Jump to cruise</span><small>Timeline</small></button>
+        <button class="command-item" data-command="phase:descent"><span>Jump to descent</span><small>Timeline</small></button>
+        <button class="command-item" data-command="phase:landing"><span>Jump to landing</span><small>Timeline</small></button>
+        <button class="command-item" data-command="view:follow"><span>Follow the A320</span><small>Camera</small></button>
+        <button class="command-item" data-command="view:overview"><span>Show route overview</span><small>Camera</small></button>
+        <button class="command-item" data-command="comparison"><span>Show prediction chart</span><small>Analysis</small></button>
+        <button class="command-item" data-command="benchmark"><span>Show before vs after benchmark</span><small>Analysis</small></button>
+        <button class="command-item" data-command="weather"><span>Toggle demo weather layer</span><small>Layer</small></button>
+        <button class="command-item" data-command="focus"><span>Toggle Focus mode</span><small>Layout</small></button>
+      </div>
+      <div id="commandEmpty" class="command-empty">No matching action</div>
+    </section>
 
     <!-- Back button -->
     <button id="backBtn" class="back-btn" title="Back to Home">&larr; Home</button>
@@ -1617,6 +1646,7 @@
       <button class="cn-btn active" data-cam="overview">Overview</button>
       <button class="cn-btn" id="btnFocus" title="Hide data panels to focus on the route">Focus</button>
       <button class="cn-btn" id="btnTheme" title="Toggle high-contrast light interface">Theme</button>
+      <button class="cn-btn" id="commandPaletteBtn" title="Open command palette">⌘K</button>
     </div>
     <div id="heatmapMode" aria-label="Travelled route colour mode">
       <span class="heatmap-label">Route colour</span>
