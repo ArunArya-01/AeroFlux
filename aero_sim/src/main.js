@@ -35,6 +35,7 @@ const state = {
   metricTooltipBound: false,
   mobilePanel: null,
   routeSamples: [],
+  miniMapDragBound: false,
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -76,6 +77,7 @@ function fmtTime(sec) {
 async function main() {
   grab()
   bindMetricTooltips()
+  bindMiniMapDrag()
   const viewer = new Cesium.Viewer('cesiumContainer', {
     timeline: false,
     animation: false,
@@ -393,7 +395,7 @@ function updateMiniMap(progress) {
   const ctx = canvas.getContext('2d')
   const W = canvas.width
   const H = canvas.height
-  const pad = 20
+  const pad = 48
   const bounds = { west: -80, east: 2, south: 34, north: 60 }
   const project = ({ lon, lat }) => ({
     x: pad + ((lon - bounds.west) / (bounds.east - bounds.west)) * (W - pad * 2),
@@ -445,6 +447,40 @@ function updateMiniMap(progress) {
   ctx.strokeStyle = '#ffffff'
   ctx.lineWidth = 2
   ctx.stroke()
+}
+
+function bindMiniMapDrag() {
+  if (state.miniMapDragBound) return
+  state.miniMapDragBound = true
+  const map = els.miniMap
+  let drag = null
+
+  map.addEventListener('pointerdown', (event) => {
+    if (state.cameraMode !== 'follow') return
+    const rect = map.getBoundingClientRect()
+    drag = { pointerId: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top }
+    map.setPointerCapture(event.pointerId)
+    map.classList.add('dragging')
+    event.preventDefault()
+  })
+  map.addEventListener('pointermove', (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return
+    const rect = map.getBoundingClientRect()
+    const left = Math.min(Math.max(8, event.clientX - drag.offsetX), window.innerWidth - rect.width - 8)
+    const top = Math.min(Math.max(8, event.clientY - drag.offsetY), window.innerHeight - rect.height - 8)
+    map.style.left = `${left}px`
+    map.style.top = `${top}px`
+    map.style.right = 'auto'
+    map.style.bottom = 'auto'
+  })
+  const endDrag = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return
+    drag = null
+    map.classList.remove('dragging')
+    if (map.hasPointerCapture(event.pointerId)) map.releasePointerCapture(event.pointerId)
+  }
+  map.addEventListener('pointerup', endDrag)
+  map.addEventListener('pointercancel', endDrag)
 }
 
 function updateClock(viewer) {

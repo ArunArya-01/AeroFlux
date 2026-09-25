@@ -106,9 +106,10 @@
         transform: translate(16px, -50%);
       }
       #aircraftHoverCard.visible { display: block; }
-      #miniMap { position: fixed; z-index: 31; right: 316px; bottom: 104px; display: none; width: 190px; height: 190px; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; background: rgba(6,15,25,.9); box-shadow: 0 12px 32px rgba(0,0,0,.34); backdrop-filter: blur(12px); }
+      #miniMap { position: fixed; z-index: 31; right: 316px; bottom: 104px; display: none; width: 190px; height: 190px; padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; background: rgba(6,15,25,.9); box-shadow: 0 12px 32px rgba(0,0,0,.34); cursor: grab; touch-action: none; user-select: none; backdrop-filter: blur(12px); }
       #miniMap.visible { display: block; }
-      .mini-map-head { position: absolute; z-index: 1; top: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; color: rgba(255,255,255,.68); font-size: 8px; font-weight: 800; letter-spacing: .7px; text-shadow: 0 1px 3px #000; text-transform: uppercase; pointer-events: none; }
+      #miniMap.dragging { cursor: grabbing; }
+      .mini-map-head { position: absolute; z-index: 1; top: 37px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; color: rgba(255,255,255,.78); font-size: 8px; font-weight: 800; letter-spacing: .7px; text-shadow: 0 1px 3px #000; text-transform: uppercase; pointer-events: none; }
       .mini-map-head b { color: #46d7a0; font-size: 8px; }
       #miniMapCanvas { display: block; width: 100%; height: 100%; background: #091a2b; }
       .aircraft-hover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -1568,7 +1569,7 @@
       </div>
     </aside>
     <aside id="miniMap" aria-label="Full route mini-map" aria-hidden="true">
-      <div class="mini-map-head"><span>Route overview</span><b>Follow</b></div>
+      <div class="mini-map-head"><span>LHR &rarr; JFK</span><b>Follow</b></div>
       <canvas id="miniMapCanvas" width="420" height="420" aria-label="LHR to JFK route with live aircraft position"></canvas>
     </aside>
 
