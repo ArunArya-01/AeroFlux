@@ -1,12 +1,50 @@
 # AeroSim — Flight Fuel-Burn Simulation
 
-Interactive 3D flight simulation showing an aircraft flying from one airport to
-another, with **per-segment fuel burn predicted by the trained AeroTwin model**
-running in the browser via ONNX Runtime Web. A Three.js tank overlay visualizes
-fuel remaining in real time.
+Interactive 3D replay of an A320-family flight from London Heathrow (LHR) to
+New York JFK (JFK). It visualizes saved fuel-burn labels, a Physics baseline,
+and AeroTwin R3 predictions on a Cesium globe.
 
-Stack: **CesiumJS** (globe, route, animated aircraft) + **Three.js** (fuel tank
-HUD) + **onnxruntime-web** (model inference) + **Vite**.
+The frontend is built with **CesiumJS** and **Vite**. The current replay is a
+bundled demo dataset; no backend API is required to run the interface.
+
+## Quick start
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite. To create a production build:
+
+```bash
+npm run build
+```
+
+## Data provenance and scope
+
+The UI deliberately distinguishes between four kinds of information:
+
+- **Saved replay data** — per-interval measured fuel labels, Physics baseline
+  estimates, AeroTwin R3 predictions, and available flight telemetry. These
+  are loaded from `public/models/demo_flight.json` through `src/data/routes.js`.
+- **Frontend-derived values** — cumulative fuel, mass, wing loading, phase
+  timing, chart summaries, and report statistics calculated in the browser.
+- **Static evaluation snapshot** — benchmark RMSE values shown in the
+  Before-vs-After view. These are aggregate evaluation values, not accuracy
+  guarantees for this one flight replay.
+- **Demo-only visuals** — the weather layer, cloud banks, wind arrows, and
+  portions of the route profile exist to explain the interface and are not
+  live telemetry or live weather.
+
+## Current limitations
+
+- One bundled LHR → JFK A320-family replay is currently available.
+- The application is a visualization and analysis demo, not an operational
+  dispatch, aircraft-tracking, or weather product.
+- The report's phase timing follows the frontend simulation profile; it should
+  not be interpreted as a certified aircraft operations record.
+- The A320-family model is a visual asset; see `public/assets/ATTRIBUTION.md`
+  for its attribution and licence.
 
 ## Features
 
