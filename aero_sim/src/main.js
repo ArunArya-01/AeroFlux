@@ -36,6 +36,8 @@ const state = {
   mobilePanel: null,
   routeSamples: [],
   miniMapDragBound: false,
+  heatmapMode: 'burn',
+  heatmapSegments: [],
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -262,13 +264,17 @@ function buildScene(viewer, flight) {
   }, false)
   const startTime = viewer.clock.startTime
   const totalSeconds = state.totalDurationS
+  const cartesianSamples = []
 
   for (let i = 0; i <= nSamples; i++) {
     const f = i / nSamples
     const time = Cesium.JulianDate.addSeconds(startTime, f * totalSeconds, new Cesium.JulianDate())
     const p = latLonAlt[i]
-    positionProperty.addSample(time, Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt))
+    const position = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt)
+    positionProperty.addSample(time, position)
+    cartesianSamples.push(position)
   }
+  buildRouteHeatmap(viewer, cartesianSamples, startTime, totalSeconds)
 
   // One real A320-family 3D aircraft is used in every camera mode. The model's
   // velocity orientation makes its nose follow the route, while only the camera
@@ -309,6 +315,43 @@ function buildScene(viewer, flight) {
   })
 
   setOverviewCamera(viewer, 0)
+}
+
+function buildRouteHeatmap(viewer, positions, startTime, totalSeconds) {
+  state.heatmapSegments = []
+  const segmentCount = positions.length - 1
+  for (let index = 0; index < segmentCount; index++) {
+    const endFraction = (index + 1) / segmentCount
+    const entity = viewer.entities.add({
+      polyline: {
+        positions: [positions[index], positions[index + 1]],
+        width: 5,
+        material: Cesium.Color.WHITE,
+        show: new Cesium.CallbackProperty((time) => (
+          Cesium.JulianDate.secondsDifference(time, startTime) / totalSeconds >= endFraction
+        ), false),
+      },
+    })
+    state.heatmapSegments.push({ entity, index })
+  }
+  updateRouteHeatmap()
+}
+
+function updateRouteHeatmap() {
+  if (!state.heatmapSegments.length) return
+  const values = state.heatmapSegments.map(({ index }) => {
+    const interval = state.intervals[Math.min(state.intervals.length - 1, Math.floor(index / state.heatmapSegments.length * state.intervals.length))]
+    if (state.heatmapMode === 'altitude') return state.routeSamples[index]?.alt || 0
+    if (state.heatmapMode === 'error') return Math.abs(interval.r3Prediction - interval.groundTruth)
+    return interval.groundTruth / Math.max(interval.durationS, 1)
+  })
+  const minimum = Math.min(...values)
+  const span = Math.max(0.0001, Math.max(...values) - minimum)
+  state.heatmapSegments.forEach(({ entity, index }) => {
+    const normalized = (values[index] - minimum) / span
+    // Cool colours mean low value; warm colours mean high value.
+    entity.polyline.material = Cesium.Color.fromHsl(0.62 - normalized * 0.62, 0.86, 0.54, 0.96)
+  })
 }
 
 function bindAircraftHover(viewer) {
@@ -537,6 +580,14 @@ function bindControls(viewer) {
   })
   document.querySelectorAll('[data-mobile-panel]').forEach((button) => {
     button.addEventListener('click', () => setMobilePanel(button.dataset.mobilePanel), listenerOptions)
+  })
+  document.querySelectorAll('[data-heatmap-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.heatmapMode = button.dataset.heatmapMode
+      document.querySelectorAll('[data-heatmap-mode]').forEach((item) => item.classList.toggle('active', item === button))
+      updateRouteHeatmap()
+      els.liveRegion.textContent = `Travelled route coloured by ${button.textContent.toLowerCase()}.`
+    }, listenerOptions)
   })
   document.querySelectorAll('[data-chart-mode]').forEach((button) => {
     button.addEventListener('click', () => {

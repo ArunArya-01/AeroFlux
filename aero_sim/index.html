@@ -112,6 +112,10 @@
       .mini-map-head { position: absolute; z-index: 1; top: 37px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; color: rgba(255,255,255,.78); font-size: 8px; font-weight: 800; letter-spacing: .7px; text-shadow: 0 1px 3px #000; text-transform: uppercase; pointer-events: none; }
       .mini-map-head b { color: #46d7a0; font-size: 8px; }
       #miniMapCanvas { display: block; width: 100%; height: 100%; background: #091a2b; }
+      #heatmapMode { position: fixed; z-index: 32; top: 58px; left: 50%; display: flex; align-items: center; gap: 4px; padding: 5px; border: 1px solid var(--panel-border); border-radius: 9px; background: rgba(8,14,22,.86); box-shadow: var(--shadow); transform: translateX(-50%); backdrop-filter: blur(12px); }
+      .heatmap-label { padding: 0 5px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+      .heatmap-btn { padding: 6px 8px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; font: 700 9px var(--font); letter-spacing: .45px; text-transform: uppercase; }
+      .heatmap-btn.active { border-color: rgba(237,28,28,.52); background: rgba(237,28,28,.12); color: var(--text); }
       .aircraft-hover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       .aircraft-hover-title { color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
       .aircraft-hover-live { color: #4ee6b0; font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
@@ -1416,6 +1420,8 @@
         .mobile-panel-btn.active { border-color: rgba(237,28,28,.65); background: rgba(237,28,28,.14); color: var(--text); }
         #leftRail, #rightRail { top: auto; bottom: 132px; left: 10px; right: 10px; width: auto; max-height: min(48vh, 430px); padding: 0; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(14px); transition: opacity .18s ease, transform .18s ease; }
         #miniMap { right: 10px; bottom: 130px; width: 154px; height: 154px; }
+        #heatmapMode { top: 10px; max-width: calc(100vw - 20px); }
+        .heatmap-label { display: none; }
         #leftRail { display: block; }
         #rightRail { display: flex; gap: 10px; }
         body.mobile-panel-flight #leftRail, body.mobile-panel-data #rightRail { opacity: 1; pointer-events: auto; transform: translateY(0); }
@@ -1603,6 +1609,12 @@
       <button class="cn-btn active" data-cam="overview">Overview</button>
       <button class="cn-btn" id="btnFocus" title="Hide data panels to focus on the route">Focus</button>
       <button class="cn-btn" id="btnTheme" title="Toggle high-contrast light interface">Theme</button>
+    </div>
+    <div id="heatmapMode" aria-label="Travelled route colour mode">
+      <span class="heatmap-label">Route colour</span>
+      <button class="heatmap-btn active" type="button" data-heatmap-mode="burn">Burn rate</button>
+      <button class="heatmap-btn" type="button" data-heatmap-mode="altitude">Altitude</button>
+      <button class="heatmap-btn" type="button" data-heatmap-mode="error">R3 error</button>
     </div>
 
     <!-- Left rail: flight card -->
