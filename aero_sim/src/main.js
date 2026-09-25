@@ -51,6 +51,9 @@ function grab() {
     'summaryPhysicsError', 'summaryImprovement', 'completionRoute',
     'aircraftHoverCard', 'aircraftHoverAltitude', 'aircraftHoverSpeed',
     'aircraftHoverHeading', 'aircraftHoverEta', 'comparisonModal', 'metricTooltip',
+    'flightReportModal', 'reportRoute', 'reportDuration', 'reportFuel', 'reportR3Error',
+    'reportImprovement', 'reportMeasured', 'reportPhysics', 'reportPhysicsError',
+    'reportR3', 'reportR3AbsError',
   ].forEach((id) => (els[id] = document.getElementById(id)))
 }
 
@@ -441,6 +444,7 @@ function bindControls(viewer) {
   }, listenerOptions)
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && els.comparisonModal.classList.contains('open')) setComparisonOpen(false)
+    if (event.key === 'Escape' && els.flightReportModal.classList.contains('open')) setFlightReportOpen(false)
   }, listenerOptions)
   els.timeline.addEventListener('input', () => {
     const fraction = Number(els.timeline.value) / Number(els.timeline.max)
@@ -450,7 +454,16 @@ function bindControls(viewer) {
   document.getElementById('libraryBtn').addEventListener('click', () => toggleLibrary(true), listenerOptions)
   document.getElementById('libraryClose').addEventListener('click', () => toggleLibrary(false), listenerOptions)
   document.getElementById('summaryClose').addEventListener('click', () => hideCompletion(), listenerOptions)
+  document.getElementById('openReportBtn').addEventListener('click', () => {
+    hideCompletion()
+    setFlightReportOpen(true)
+  }, listenerOptions)
   document.getElementById('replayBtn').addEventListener('click', () => replay(viewer), listenerOptions)
+  document.getElementById('reportClose').addEventListener('click', () => setFlightReportOpen(false), listenerOptions)
+  document.getElementById('reportPrint').addEventListener('click', () => window.print(), listenerOptions)
+  els.flightReportModal.addEventListener('click', (event) => {
+    if (event.target === els.flightReportModal) setFlightReportOpen(false)
+  }, listenerOptions)
 }
 
 function jumpToPhase(viewer, phase) {
@@ -682,9 +695,30 @@ function showCompletion(fuel, physics, r3) {
   els.summaryR3Error.textContent = `${r3Error >= 0 ? '+' : ''}${r3Error.toFixed(0)} kg`
   els.summaryPhysicsError.textContent = `${physicsError >= 0 ? '+' : ''}${physicsError.toFixed(0)} kg`
   els.summaryImprovement.textContent = `${improvement.toFixed(1)}% lower error`
+  populateFlightReport(fuel, physics, r3, improvement)
   els.completionModal.classList.add('open')
   els.completionModal.setAttribute('aria-hidden', 'false')
   els.liveRegion.textContent = 'Flight complete. Simulation summary is open.'
+}
+
+function populateFlightReport(fuel, physics, r3, improvement) {
+  const physicsError = physics - fuel
+  const r3Error = r3 - fuel
+  els.reportRoute.textContent = `${els.completionRoute.textContent} · ${els.hudAircraft.textContent}`
+  els.reportDuration.textContent = fmtTime(state.totalDurationS)
+  els.reportFuel.textContent = `${fuel.toFixed(0)} kg`
+  els.reportR3Error.textContent = `${r3Error >= 0 ? '+' : ''}${r3Error.toFixed(0)} kg`
+  els.reportImprovement.textContent = `${improvement.toFixed(1)}%`
+  els.reportMeasured.textContent = `${fuel.toFixed(0)} kg`
+  els.reportPhysics.textContent = `${physics.toFixed(0)} kg`
+  els.reportPhysicsError.textContent = `${Math.abs(physicsError).toFixed(0)} kg`
+  els.reportR3.textContent = `${r3.toFixed(0)} kg`
+  els.reportR3AbsError.textContent = `${Math.abs(r3Error).toFixed(0)} kg`
+}
+
+function setFlightReportOpen(open) {
+  els.flightReportModal.classList.toggle('open', open)
+  els.flightReportModal.setAttribute('aria-hidden', String(!open))
 }
 
 function hideCompletion() {
@@ -705,6 +739,7 @@ function replay(viewer) {
   viewer.clock.shouldAnimate = true
   els.btnPause.textContent = '⏸'
   hideCompletion()
+  setFlightReportOpen(false)
   drawChart()
   els.liveRegion.textContent = 'Flight replay restarted.'
 }
