@@ -42,6 +42,7 @@ const state = {
   weatherEntities: [],
   aircraftHoverActive: false,
   reportExport: null,
+  printing: false,
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -718,11 +719,19 @@ function bindControls(viewer) {
   }, listenerOptions)
   document.getElementById('replayBtn').addEventListener('click', () => replay(viewer), listenerOptions)
   document.getElementById('reportClose').addEventListener('click', () => setFlightReportOpen(false), listenerOptions)
-  document.getElementById('reportPrint').addEventListener('click', () => window.print(), listenerOptions)
+  document.getElementById('reportPrint').addEventListener('click', () => prepareReportPrint(), listenerOptions)
   document.getElementById('reportExportCsv').addEventListener('click', () => exportFlightReport('csv'), listenerOptions)
   document.getElementById('reportExportJson').addEventListener('click', () => exportFlightReport('json'), listenerOptions)
   els.flightReportModal.addEventListener('click', (event) => {
     if (event.target === els.flightReportModal) setFlightReportOpen(false)
+  }, listenerOptions)
+  window.addEventListener('beforeprint', () => {
+    state.printing = true
+    drawChart()
+  }, listenerOptions)
+  window.addEventListener('afterprint', () => {
+    state.printing = false
+    drawChart()
   }, listenerOptions)
 }
 
@@ -952,14 +961,17 @@ function drawReportCharts() {
   const actual = state.intervals.map((interval) => interval.groundTruth)
   const physics = state.intervals.map((interval) => interval.physicsFuelKg)
   const r3 = state.intervals.map((interval) => interval.r3Prediction)
+  const colors = state.printing
+    ? { actual: '#111827', physics: '#475569', r3: '#dc1414' }
+    : { actual: '#ffffff', physics: 'rgba(255,255,255,.52)', r3: '#dc1414' }
   drawReportLineChart(els.reportIntervalChart, [
-    { values: actual, color: '#ffffff' },
-    { values: physics, color: 'rgba(255,255,255,.52)', dashed: true },
-    { values: r3, color: '#dc1414' },
+    { values: actual, color: colors.actual },
+    { values: physics, color: colors.physics, dashed: true },
+    { values: r3, color: colors.r3 },
   ])
   drawReportLineChart(els.reportErrorChart, [
-    { values: physics.map((value, index) => Math.abs(value - actual[index])), color: 'rgba(255,255,255,.62)', dashed: true },
-    { values: r3.map((value, index) => Math.abs(value - actual[index])), color: '#dc1414' },
+    { values: physics.map((value, index) => Math.abs(value - actual[index])), color: colors.physics, dashed: true },
+    { values: r3.map((value, index) => Math.abs(value - actual[index])), color: colors.r3 },
   ])
 }
 
@@ -969,15 +981,12 @@ function drawReportLineChart(canvas, series) {
   const W = canvas.width
   const H = canvas.height
   ctx.clearRect(0, 0, W, H)
-  if (canvas === els.reportChart) {
-    // Keep the chart legible in the white print/PDF layout as well as the dark UI.
-    ctx.fillStyle = '#101318'
-    ctx.fillRect(0, 0, W, H)
-  }
+  ctx.fillStyle = state.printing ? '#ffffff' : '#101318'
+  ctx.fillRect(0, 0, W, H)
   const max = Math.max(...series.flatMap((line) => line.values), 1)
   const pad = { x: 34, y: 22 }
 
-  ctx.strokeStyle = 'rgba(255,255,255,.1)'
+  ctx.strokeStyle = state.printing ? 'rgba(15,23,42,.18)' : 'rgba(255,255,255,.1)'
   ctx.lineWidth = 1
   ctx.setLineDash([])
   for (let line = 0; line < 4; line++) {
@@ -987,7 +996,7 @@ function drawReportLineChart(canvas, series) {
     ctx.lineTo(W - 8, y)
     ctx.stroke()
   }
-  ctx.fillStyle = 'rgba(255,255,255,.58)'
+  ctx.fillStyle = state.printing ? '#475569' : 'rgba(255,255,255,.58)'
   ctx.font = '600 20px system-ui'
   ctx.fillText(`${max.toFixed(0)} kg`, 2, pad.y + 6)
   ctx.fillText('0', 14, H - pad.y + 6)
@@ -1014,7 +1023,7 @@ function drawChartCanvas(canvas, options = {}) {
   const W = canvas.width
   const H = canvas.height
   ctx.clearRect(0, 0, W, H)
-  ctx.fillStyle = '#101318'
+  ctx.fillStyle = state.printing ? '#ffffff' : '#101318'
   ctx.fillRect(0, 0, W, H)
 
   const mode = options.mode || state.chartMode
@@ -1041,7 +1050,7 @@ function drawChartCanvas(canvas, options = {}) {
   }
 
   const grid = (top, height) => {
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)'
+    ctx.strokeStyle = state.printing ? 'rgba(15,23,42,.18)' : 'rgba(255,255,255,0.08)'
     ctx.lineWidth = 1
     ctx.setLineDash([])
     for (let line = 1; line < 3; line++) {
@@ -1057,18 +1066,18 @@ function drawChartCanvas(canvas, options = {}) {
     const half = Math.floor(H / 2)
     grid(0, half)
     grid(half, half)
-    ctx.fillStyle = 'rgba(255,255,255,.58)'
+    ctx.fillStyle = state.printing ? '#475569' : 'rgba(255,255,255,.58)'
     ctx.font = '700 9px system-ui'
     ctx.fillText('PHYSICS BASELINE', 8, 12)
     ctx.fillText('AEROTWIN R3', 8, half + 12)
-    trace(actual, 0, half, '#ffffff')
-    trace(phys, 0, half, 'rgba(255,255,255,.5)', true)
-    trace(actual, half, half, '#ffffff')
+    trace(actual, 0, half, state.printing ? '#111827' : '#ffffff')
+    trace(phys, 0, half, state.printing ? '#475569' : 'rgba(255,255,255,.5)', true)
+    trace(actual, half, half, state.printing ? '#111827' : '#ffffff')
     trace(r3, half, half, '#dc1414')
   } else {
     grid(0, H)
-    trace(phys, 0, H, 'rgba(255,255,255,.5)', true)
-    trace(actual, 0, H, '#ffffff')
+    trace(phys, 0, H, state.printing ? '#475569' : 'rgba(255,255,255,.5)', true)
+    trace(actual, 0, H, state.printing ? '#111827' : '#ffffff')
     trace(r3, 0, H, '#dc1414')
   }
   ctx.setLineDash([])
@@ -1245,6 +1254,13 @@ function exportFlightReport(format) {
   link.download = `aeroflux-flight-report.${suffix}`
   link.click()
   URL.revokeObjectURL(link.href)
+}
+
+function prepareReportPrint() {
+  state.printing = true
+  drawChart()
+  // Give the canvas a paint cycle with its print palette before Chrome captures it.
+  requestAnimationFrame(() => window.print())
 }
 
 function setFlightReportOpen(open) {
