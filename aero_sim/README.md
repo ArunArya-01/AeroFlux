@@ -48,37 +48,64 @@ The UI deliberately distinguishes between four kinds of information:
 
 ## Features
 
-- 3D globe with terrain, lighting, and a real great-circle-ish route
-- Animated aircraft following the route; camera auto-follows
-- Route polyline plus per-segment markers **colored by predicted fuel burn**
-  (green = low, orange = medium, red = high) with fuel-kg labels
-- HUD: progress %, fuel used, fuel remaining, distance, prediction engine
-- Three.js fuel-tank gauge animating with remaining fuel
-- **Two prediction engines:**
-  1. **ONNX Runtime Web** — the real exported student model (`public/models/`)
-  2. **Physics fallback** — used automatically when the ONNX files are absent
+- Cesium 3D globe, continuous A320-family animation, and LHR/JFK markers
+- Overview and Follow camera modes, including a draggable full-route mini-map
+- Live phase label above the aircraft: Takeoff, Climb, Cruise, Descent, or Landing
+- Clickable flight-event timeline and scrubber
+- Live aircraft hover telemetry: altitude, speed, heading, and replay ETA
+- Dynamic mass, fuel, aerodynamic-force, and prediction panels
+- Cumulative and burn-rate chart views, with overlay and split-comparison modes
+- Expanded prediction chart and Before-vs-After static benchmark comparison
+- Route heatmap for travelled path: burn rate, altitude, or R3 prediction error
+- Optional demo weather layer with wind, cloud, temperature, and turbulence indicators
+- Mission-control command palette via <kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd>
+- Focus mode, light theme, metric explanation tooltips, keyboard focus styles,
+  and reduced-motion support
+- Mobile-only Flight/Data bottom sheets that keep the globe visible
 
-## Using the real model
+## Controls
 
-The simulator auto-detects `public/models/large_mlp.onnx` +
-`large_mlp.preproc.json`. See [`public/models/README.md`](public/models/README.md)
-for how to export them from the project's distillation checkpoints
-(`experiments/11_onnx_deploy/export_onnx.py`). Without them, the physics
-fallback keeps the demo running.
+| Control | What it does |
+| --- | --- |
+| Follow / Overview | Switch between the close aircraft camera and the full North Atlantic route. |
+| Timeline and phase buttons | Scrub the replay or jump directly to a flight phase. |
+| Route colour | Colour only the travelled route by burn rate, altitude, or R3 error. |
+| Weather | Toggle the clearly marked demo atmosphere layer. |
+| Hover the A320 | Show live altitude, speed, heading, and remaining replay time. |
+| Drag the mini-map | Reposition the circular mini-map while in Follow mode. |
+| ⌘/Ctrl + K | Open the searchable mission-control command palette. |
+
+## End-of-flight report and exports
+
+When the replay finishes, select **Open report** from the completion dialog.
+The report includes:
+
+- Flight event ledger and phase-by-phase mission debrief
+- Fuel, mass, aerodynamic state, and flight extremes
+- Measured-vs-Physics-vs-R3 comparison tables
+- Cumulative, interval fuel-burn, and interval error charts
+- Prediction-quality statistics across the complete replay
+
+Use **Print / save PDF** for a multi-page report. The PDF uses a dedicated
+high-contrast chart palette: black measured trace, dark-grey dashed Physics
+baseline, and red R3 trace. CSV exports the interval rows; JSON exports the
+event ledger, phase summary, and interval data.
 
 ## Project layout
 
 ```
 aero_sim/
-├── index.html                 # App shell + HUD
-├── package.json
-├── vite.config.js             # Vite + Cesium plugin
+├── index.html                 # App shell, UI, responsive and print styles
+├── package.json               # Dev and production build commands
+├── vite.config.js             # Vite + Cesium plugin configuration
 ├── public/
-│   └── models/                # Drop exported .onnx + preproc.json here
+│   ├── assets/
+│   │   ├── a320-family.glb    # Aircraft visual model
+│   │   └── ATTRIBUTION.md     # Asset attribution and licence
+│   └── models/
+│       └── demo_flight.json   # Bundled PRC-style replay dataset
 └── src/
-    ├── main.js                # Cesium viewer, route, animation, wiring
-    ├── fuel.js                # FuelPredictor: ONNX + physics fallback
-    ├── threeScene.js          # Three.js fuel-gauge overlay
+    ├── main.js                # Globe, animation, report, charts, and UI wiring
     └── data/
-        └── routes.js          # Sample routes (EGLL→KJFK, KSFO→KORD)
+        └── routes.js          # Adapts the bundled replay data for the UI
 ```
