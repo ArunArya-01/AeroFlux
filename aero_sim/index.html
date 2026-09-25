@@ -92,6 +92,28 @@
         inset: 0;
         background: var(--bg-deep);
       }
+      #aircraftHoverCard {
+        position: fixed;
+        z-index: 45;
+        display: none;
+        width: 205px;
+        padding: 12px;
+        border: 1px solid rgba(255,255,255,.34);
+        border-radius: 10px;
+        background: rgba(5,12,20,.9);
+        box-shadow: 0 14px 38px rgba(0,0,0,.38);
+        pointer-events: none;
+        transform: translate(16px, -50%);
+      }
+      #aircraftHoverCard.visible { display: block; }
+      .aircraft-hover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .aircraft-hover-title { color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+      .aircraft-hover-live { color: #4ee6b0; font-size: 8px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+      .aircraft-hover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 12px; margin-top: 11px; }
+      .aircraft-hover-grid div:last-child { grid-column: span 2; }
+      .aircraft-hover-grid span, .aircraft-hover-grid b { display: block; }
+      .aircraft-hover-grid span { color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
+      .aircraft-hover-grid b { margin-top: 3px; color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
       .cesium-widget-credits {
         opacity: 0.5;
         font-size: 10px;
@@ -1454,6 +1476,15 @@
     <!-- ================= SIMULATION ================= -->
     <div id="simUI" aria-hidden="true">
     <div id="cesiumContainer"></div>
+    <aside id="aircraftHoverCard" aria-hidden="true" role="status">
+      <div class="aircraft-hover-head"><span class="aircraft-hover-title">A320 family</span><span class="aircraft-hover-live">Live</span></div>
+      <div class="aircraft-hover-grid">
+        <div><span>Altitude</span><b id="aircraftHoverAltitude">—</b></div>
+        <div><span>Ground speed</span><b id="aircraftHoverSpeed">—</b></div>
+        <div><span>Heading</span><b id="aircraftHoverHeading">—</b></div>
+        <div><span>Replay ETA</span><b id="aircraftHoverEta">—</b></div>
+      </div>
+    </aside>
 
     <div id="liveRegion" class="sr-only" aria-live="polite"></div>
 
