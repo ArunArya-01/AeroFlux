@@ -33,6 +33,7 @@ const state = {
   completed: false,
   controlsAbort: null,
   metricTooltipBound: false,
+  mobilePanel: null,
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -428,6 +429,9 @@ function bindControls(viewer) {
       button.textContent = collapsed ? '+' : '−'
     }, listenerOptions)
   })
+  document.querySelectorAll('[data-mobile-panel]').forEach((button) => {
+    button.addEventListener('click', () => setMobilePanel(button.dataset.mobilePanel), listenerOptions)
+  })
   document.querySelectorAll('[data-chart-mode]').forEach((button) => {
     button.addEventListener('click', () => {
       state.chartMode = button.dataset.chartMode
@@ -469,6 +473,17 @@ function bindControls(viewer) {
   els.flightReportModal.addEventListener('click', (event) => {
     if (event.target === els.flightReportModal) setFlightReportOpen(false)
   }, listenerOptions)
+}
+
+function setMobilePanel(panel) {
+  state.mobilePanel = state.mobilePanel === panel ? null : panel
+  document.body.classList.toggle('mobile-panel-flight', state.mobilePanel === 'flight')
+  document.body.classList.toggle('mobile-panel-data', state.mobilePanel === 'data')
+  document.querySelectorAll('[data-mobile-panel]').forEach((button) => {
+    const active = button.dataset.mobilePanel === state.mobilePanel
+    button.classList.toggle('active', active)
+    button.setAttribute('aria-pressed', String(active))
+  })
 }
 
 function jumpToPhase(viewer, phase) {

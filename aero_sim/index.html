@@ -936,6 +936,7 @@
       .completion-grid span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .55px; }
       .completion-grid b { margin-top: 5px; font-size: 18px; }
       .completion-actions { display: flex; justify-content: flex-end; gap: 8px; }
+      #mobilePanelDock { display: none; }
       .report-card { width: min(760px, 100%); max-height: min(820px, calc(100vh - 40px)); overflow-y: auto; padding: 30px; }
       .report-head { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding-bottom: 18px; border-bottom: 1px solid var(--panel-border); }
       .report-head h2 { margin: 4px 0 0; font-size: clamp(24px, 4vw, 36px); }
@@ -1385,19 +1386,21 @@
       }
 
       @media (max-width: 640px) {
-        #rightRail {
-          top: auto;
-          bottom: 80px;
-          width: 170px;
-          gap: 10px;
-        }
+        #mobilePanelDock { position: fixed; z-index: 42; right: 10px; bottom: 82px; display: flex; gap: 6px; padding: 5px; border: 1px solid var(--panel-border); border-radius: 11px; background: var(--panel); box-shadow: var(--shadow); }
+        .mobile-panel-btn { min-width: 62px; padding: 8px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); font: 700 9px var(--font); letter-spacing: .5px; text-transform: uppercase; }
+        .mobile-panel-btn.active { border-color: rgba(237,28,28,.65); background: rgba(237,28,28,.14); color: var(--text); }
+        #leftRail, #rightRail { top: auto; bottom: 132px; left: 10px; right: 10px; width: auto; max-height: min(48vh, 430px); padding: 0; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(14px); transition: opacity .18s ease, transform .18s ease; }
+        #leftRail { display: block; }
+        #rightRail { display: flex; gap: 10px; }
+        body.mobile-panel-flight #leftRail, body.mobile-panel-data #rightRail { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        body.mobile-panel-flight #rightRail, body.mobile-panel-data #leftRail { opacity: 0; pointer-events: none; transform: translateY(14px); }
+        #rightRail .panel-card { flex: 1 0 100%; }
         #fuelGaugeWrap {
           height: 120px;
         }
         #legend {
           display: none;
         }
-        #rightRail { max-height: calc(100vh - 170px); }
         .panel-card { padding: 12px; }
         .completion-grid { grid-template-columns: 1fr; }
         .report-kpis { grid-template-columns: 1fr 1fr; }
@@ -1762,6 +1765,10 @@
         <button class="ctrl-btn" id="speedUp" title="Faster">+</button>
       </div>
     </div>
+    <nav id="mobilePanelDock" aria-label="Mobile dashboard panels">
+      <button class="mobile-panel-btn" type="button" data-mobile-panel="flight" aria-pressed="false">Flight</button>
+      <button class="mobile-panel-btn" type="button" data-mobile-panel="data" aria-pressed="false">Data</button>
+    </nav>
 
     <aside id="flightLibrary" class="glass" aria-label="Flight library" aria-hidden="true">
       <div class="drawer-head"><div><span class="eyebrow">Flight library</span><h2>Available flights</h2></div><button id="libraryClose" class="icon-btn" aria-label="Close flight library">×</button></div>
