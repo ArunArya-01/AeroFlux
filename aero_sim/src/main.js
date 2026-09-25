@@ -41,6 +41,7 @@ const state = {
   weatherEnabled: false,
   weatherEntities: [],
   aircraftHoverActive: false,
+  reportExport: null,
   phaseAnchors: { takeoff: 0, climb: 0.06, cruise: 0.15, descent: 0.9, landing: 0.98 },
 }
 
@@ -71,6 +72,8 @@ function grab() {
     'reportPhysicsTotal', 'reportR3Total', 'reportPhysicsFinalAbs', 'reportR3FinalAbs',
     'reportPhysicsRelative', 'reportR3Relative', 'reportPhysicsMae', 'reportR3Mae',
     'reportPhysicsWorst', 'reportR3Worst',
+    'reportEvents', 'reportPhaseSummary', 'reportPeakAltitude', 'reportPeakSpeed',
+    'reportPeakBurn', 'reportPeakError',
   ].forEach((id) => (els[id] = document.getElementById(id)))
 }
 
@@ -716,6 +719,8 @@ function bindControls(viewer) {
   document.getElementById('replayBtn').addEventListener('click', () => replay(viewer), listenerOptions)
   document.getElementById('reportClose').addEventListener('click', () => setFlightReportOpen(false), listenerOptions)
   document.getElementById('reportPrint').addEventListener('click', () => window.print(), listenerOptions)
+  document.getElementById('reportExportCsv').addEventListener('click', () => exportFlightReport('csv'), listenerOptions)
+  document.getElementById('reportExportJson').addEventListener('click', () => exportFlightReport('json'), listenerOptions)
   els.flightReportModal.addEventListener('click', (event) => {
     if (event.target === els.flightReportModal) setFlightReportOpen(false)
   }, listenerOptions)
@@ -1139,7 +1144,107 @@ function populateFlightReport(fuel, physics, r3, improvement) {
   els.reportBurnRate.textContent = els.massBurnRate.textContent
   els.reportThrust.textContent = els.thrustVal.textContent
   els.reportDragLift.textContent = `${els.dragVal.textContent} / ${els.liftVal.textContent}`
+  populateMissionDebrief()
   drawChart()
+}
+
+function populateMissionDebrief() {
+  const phaseOrder = ['takeoff', 'climb', 'cruise', 'descent', 'landing']
+  const phaseLabels = { takeoff: 'Takeoff', climb: 'Climb', cruise: 'Cruise', descent: 'Descent', landing: 'Landing' }
+  const eventLedger = phaseOrder.map((phase) => ({
+    phase,
+    label: phaseLabels[phase],
+    fraction: state.phaseAnchors[phase],
+    time: state.phaseAnchors[phase] * state.totalDurationS,
+  }))
+  els.reportEvents.replaceChildren(...eventLedger.map((event) => {
+    const item = document.createElement('li')
+    const label = document.createElement('b')
+    const time = document.createElement('span')
+    label.textContent = event.label
+    time.textContent = fmtTime(event.time)
+    item.append(label, time)
+    return item
+  }))
+
+  const phases = Object.fromEntries(phaseOrder.map((phase) => [phase, {
+    phase, duration: 0, fuel: 0, r3Error: 0, intervals: 0,
+  }]))
+  let elapsed = 0
+  state.intervals.forEach((interval) => {
+    const midpoint = (elapsed + interval.durationS / 2) / state.totalDurationS
+    const phase = getFlightPhase(null, midpoint)
+    const group = phases[phase]
+    group.duration += interval.durationS
+    group.fuel += interval.groundTruth
+    group.r3Error += Math.abs(interval.r3Prediction - interval.groundTruth)
+    group.intervals++
+    elapsed += interval.durationS
+  })
+  const phaseData = phaseOrder.map((phase) => phases[phase])
+  els.reportPhaseSummary.replaceChildren(...phaseData.map((group) => {
+    const row = document.createElement('tr')
+    const values = [
+      phaseLabels[group.phase], fmtTime(group.duration), `${group.fuel.toFixed(0)} kg`,
+      `${(group.fuel / Math.max(group.duration, 1)).toFixed(2)} kg/s`,
+      `${(group.r3Error / Math.max(group.intervals, 1)).toFixed(1)} kg`,
+    ]
+    values.forEach((value) => {
+      const cell = document.createElement('td')
+      cell.textContent = value
+      row.append(cell)
+    })
+    return row
+  }))
+
+  const highestAltitude = Math.max(...state.intervals.map((interval) => interval.altitudeM || 0), 0)
+  const speeds = state.intervals.map((interval) => interval.groundSpeedMps || 0).filter((value) => value > 0)
+  const peakSpeed = speeds.length ? Math.max(...speeds) : null
+  const peakBurn = Math.max(...state.intervals.map((interval) => interval.groundTruth / Math.max(interval.durationS, 1)), 0)
+  const peakError = Math.max(...state.intervals.map((interval) => Math.abs(interval.r3Prediction - interval.groundTruth)), 0)
+  els.reportPeakAltitude.textContent = `${(highestAltitude / 1000).toFixed(1)} km`
+  els.reportPeakSpeed.textContent = peakSpeed ? `${Math.round(peakSpeed * 1.94384)} kt` : 'Unavailable'
+  els.reportPeakBurn.textContent = `${peakBurn.toFixed(2)} kg/s`
+  els.reportPeakError.textContent = `${peakError.toFixed(0)} kg`
+
+  state.reportExport = { eventLedger, phaseData, intervals: state.intervals.map((interval, index) => ({
+    interval: index + 1,
+    phase: getFlightPhase(null, (index + 0.5) / state.intervals.length),
+    durationSeconds: interval.durationS,
+    altitudeMetres: interval.altitudeM || null,
+    groundSpeedMps: interval.groundSpeedMps || null,
+    measuredFuelKg: interval.groundTruth,
+    physicsFuelKg: interval.physicsFuelKg,
+    r3PredictionKg: interval.r3Prediction,
+    r3AbsoluteErrorKg: Math.abs(interval.r3Prediction - interval.groundTruth),
+  })) }
+}
+
+function exportFlightReport(format) {
+  if (!state.reportExport) return
+  let content
+  let type
+  let suffix
+  if (format === 'json') {
+    content = JSON.stringify({
+      route: els.completionRoute.textContent,
+      aircraft: els.hudAircraft.textContent,
+      source: 'Bundled PRC demo replay data; frontend-derived phase and summary values.',
+      ...state.reportExport,
+    }, null, 2)
+    type = 'application/json'
+    suffix = 'json'
+  } else {
+    const headers = Object.keys(state.reportExport.intervals[0])
+    content = [headers.join(','), ...state.reportExport.intervals.map((row) => headers.map((key) => JSON.stringify(row[key] ?? '')).join(','))].join('\n')
+    type = 'text/csv'
+    suffix = 'csv'
+  }
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(new Blob([content], { type }))
+  link.download = `aeroflux-flight-report.${suffix}`
+  link.click()
+  URL.revokeObjectURL(link.href)
 }
 
 function setFlightReportOpen(open) {

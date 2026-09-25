@@ -1015,6 +1015,17 @@
       .report-chart-key.r3 { background: #dc1414; }
       .report-note { margin: 20px 0 0; padding: 12px 14px; border-left: 3px solid var(--accent); background: rgba(237,28,28,.08); color: var(--text-dim); font-size: 11px; line-height: 1.5; }
       .report-section, .report-chart-wrap { break-inside: avoid; }
+      .report-events { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+      .report-events li { position: relative; padding: 11px 8px 10px 13px; border: 1px solid var(--panel-border); border-radius: 8px; background: rgba(255,255,255,.03); }
+      .report-events li::before { position: absolute; top: 13px; left: -4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); content: ''; }
+      .report-events b, .report-events span { display: block; }
+      .report-events b { color: var(--text); font-size: 10px; text-transform: uppercase; letter-spacing: .45px; }
+      .report-events span { margin-top: 5px; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+      .report-extremes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+      .report-extreme { padding: 11px; border: 1px solid var(--panel-border); border-radius: 8px; background: rgba(255,255,255,.03); }
+      .report-extreme span, .report-extreme b { display: block; }
+      .report-extreme span { color: var(--muted); font-size: 9px; letter-spacing: .55px; text-transform: uppercase; }
+      .report-extreme b { margin-top: 5px; color: var(--text); font-size: 14px; font-variant-numeric: tabular-nums; }
       @media print {
         body * { visibility: hidden !important; }
         #flightReportModal, #flightReportModal * { visibility: visible !important; }
@@ -1456,6 +1467,8 @@
         .completion-grid { grid-template-columns: 1fr; }
         .report-kpis { grid-template-columns: 1fr 1fr; }
         .report-summary-grid { grid-template-columns: 1fr; }
+        .report-events { grid-template-columns: 1fr 1fr; }
+        .report-extremes { grid-template-columns: 1fr 1fr; }
         .report-card { padding: 20px; }
         .research-grid { grid-template-columns: 1fr; }
         #flightLibrary { bottom: 10px; top: auto; }
@@ -1897,6 +1910,10 @@
           <div class="report-kpi"><span>R3 total error</span><b id="reportR3Error">—</b></div>
           <div class="report-kpi emphasis"><span>R3 error reduction</span><b id="reportImprovement">—</b></div>
         </div>
+        <section class="report-section" aria-labelledby="reportEventsTitle">
+          <h3 id="reportEventsTitle">Flight event ledger</h3>
+          <ol id="reportEvents" class="report-events"></ol>
+        </section>
         <section class="report-section" aria-labelledby="reportComparisonTitle">
           <h3 id="reportComparisonTitle">Prediction comparison</h3>
           <table class="report-table"><thead><tr><th>Method</th><th>Predicted fuel</th><th>Absolute error</th></tr></thead><tbody>
@@ -1919,6 +1936,19 @@
             <tr><td>Mean interval absolute error</td><td id="reportPhysicsMae">—</td><td id="reportR3Mae">—</td></tr>
             <tr><td>Worst interval absolute error</td><td id="reportPhysicsWorst">—</td><td id="reportR3Worst">—</td></tr>
           </tbody></table>
+        </section>
+        <section class="report-section" aria-labelledby="reportPhaseTitle">
+          <h3 id="reportPhaseTitle">Phase-by-phase mission debrief</h3>
+          <table class="report-table"><thead><tr><th>Phase</th><th>Duration</th><th>Fuel used</th><th>Avg. burn</th><th>R3 mean error</th></tr></thead><tbody id="reportPhaseSummary"></tbody></table>
+        </section>
+        <section class="report-section" aria-labelledby="reportExtremesTitle">
+          <h3 id="reportExtremesTitle">Flight extremes</h3>
+          <div class="report-extremes">
+            <div class="report-extreme"><span>Peak altitude</span><b id="reportPeakAltitude">—</b></div>
+            <div class="report-extreme"><span>Peak speed</span><b id="reportPeakSpeed">—</b></div>
+            <div class="report-extreme"><span>Highest burn rate</span><b id="reportPeakBurn">—</b></div>
+            <div class="report-extreme"><span>Highest R3 error</span><b id="reportPeakError">—</b></div>
+          </div>
         </section>
         <section class="report-section" aria-labelledby="reportIntervalTitle">
           <h3 id="reportIntervalTitle">Fuel burn by replay interval</h3>
@@ -1954,7 +1984,7 @@
           <h3 id="reportProvenanceTitle">Data provenance</h3>
           <p class="report-note">This report uses the currently replayed PRC demo-flight interval labels and the corresponding saved Physics baseline and AeroTwin R3 predictions. It is a demo replay summary, not an operational dispatch report or a live aircraft measurement.</p>
         </section>
-        <div class="completion-actions"><button id="reportClose" class="secondary-btn" type="button">Back to simulation</button><button id="reportPrint" class="primary-btn" type="button">Print / save PDF</button></div>
+        <div class="completion-actions"><button id="reportExportCsv" class="secondary-btn" type="button">Export CSV</button><button id="reportExportJson" class="secondary-btn" type="button">Export JSON</button><button id="reportClose" class="secondary-btn" type="button">Back to simulation</button><button id="reportPrint" class="primary-btn" type="button">Print / save PDF</button></div>
       </article>
     </section>
     <section id="comparisonModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="comparisonTitle">
