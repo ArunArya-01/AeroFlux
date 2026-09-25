@@ -25,6 +25,12 @@ const state = {
   chartActual: [],
   chartPhysics: [],
   chartR3: [],
+  chartActualRate: [],
+  chartPhysicsRate: [],
+  chartR3Rate: [],
+  chartMode: 'cumulative',
+  completed: false,
+  controlsAbort: null,
 }
 
 const els = {}
@@ -38,6 +44,8 @@ function grab() {
     'massTakeoff', 'massCurrent', 'massLanding', 'hudFuelRemaining', 'massFuelBurn',
     'massBurnRate', 'massFuelFrac', 'massRate', 'massWingLoad', 'massPhase',
     'predGt', 'predOpenap', 'predR3', 'predOpenapErr', 'predR3Err', 'predR3Rel', 'predChart',
+    'timeline', 'liveRegion', 'completionModal', 'summaryFuel', 'summaryR3Error',
+    'summaryPhysicsError', 'summaryImprovement', 'completionRoute',
   ].forEach((id) => (els[id] = document.getElementById(id)))
 }
 
@@ -64,6 +72,11 @@ async function main() {
     fullscreenButton: false,
   })
   state.viewer = viewer
+  // Keep the globe legible even when Cesium's optional online imagery tiles
+  // are unavailable (for example, in an offline demo environment).
+  viewer.scene.globe.show = true
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#17324d')
+  viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#06111f')
   viewer.scene.globe.enableLighting = true
   viewer.scene.globe.atmosphereLightFactor = 1.2
   viewer.scene.skyAtmosphere.show = true
@@ -80,7 +93,8 @@ async function main() {
   els.hudDestName.textContent = flight.destinationName
   els.hudAircraft.textContent = flight.aircraftType
   els.hudDistance.textContent = `${(state.totalDurationS * 0.24 / 1000).toFixed(0)} km`
-  els.hudEngine.textContent = 'R3 Model (Live)'
+  els.hudEngine.textContent = 'PRC flight replay'
+  els.completionRoute.textContent = `${flight.origin} → ${flight.destination}`
 
   bindControls(viewer)
   buildScene(viewer, flight)
@@ -159,21 +173,22 @@ function buildScene(viewer, flight) {
     })
   }
 
-  // Route polyline (glow) — only show the airborne portion.
-  const routePositions = latLonAlt.map((p) => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt))
-  viewer.entities.add({
-    polyline: {
-      positions: routePositions,
-      width: 3,
-      material: new Cesium.PolylineGlowMaterialProperty({
-        glowPower: 0.25,
-        color: Cesium.Color.fromCssColorString('#dc1414').withAlpha(0.7),
-      }),
-    },
-  })
-
   // Sampled position property for smooth animation with auto-orientation.
   const positionProperty = new Cesium.SampledPositionProperty()
+  const velocityOrientation = new Cesium.VelocityOrientationProperty(positionProperty)
+  // The imported A320 sits 90° off Cesium's local forward axis. Correct only
+  // its heading (around the local up axis): pitch and bank remain level.
+  const a320ForwardCorrection = Cesium.Quaternion.fromAxisAngle(
+    Cesium.Cartesian3.UNIT_Z,
+    -Cesium.Math.PI_OVER_TWO,
+  )
+  const a320OrientationScratch = new Cesium.Quaternion()
+  const a320Orientation = new Cesium.CallbackProperty((time, result) => {
+    const routeOrientation = velocityOrientation.getValue(time)
+    return routeOrientation
+      ? Cesium.Quaternion.multiply(routeOrientation, a320ForwardCorrection, result || a320OrientationScratch)
+      : undefined
+  }, false)
   const startTime = viewer.clock.startTime
   const totalSeconds = state.totalDurationS
 
@@ -184,34 +199,29 @@ function buildScene(viewer, flight) {
     positionProperty.addSample(time, Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt))
   }
 
-  // Aircraft entity with velocity-based orientation.
+  // One real A320-family 3D aircraft is used in every camera mode. The model's
+  // velocity orientation makes its nose follow the route, while only the camera
+  // angle changes between overview and follow mode.
   state.plane = viewer.entities.add({
     position: positionProperty,
-    orientation: new Cesium.VelocityOrientationProperty(positionProperty),
-    point: {
-      pixelSize: 16,
-      color: Cesium.Color.fromCssColorString('#ff3333'),
-      disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      outlineColor: Cesium.Color.WHITE,
-      outlineWidth: 2,
+    orientation: a320Orientation,
+    model: {
+      uri: '/assets/a320-family.glb',
+      minimumPixelSize: new Cesium.CallbackProperty(
+        () => (state.cameraMode === 'follow' ? 96 : 52),
+        false,
+      ),
+      maximumScale: 1800,
+      runAnimations: true,
     },
-    label: {
-      text: '✈',
-      font: 'bold 22px sans-serif',
-      fillColor: Cesium.Color.WHITE,
-      disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      pixelOffset: new Cesium.Cartesian2(0, -12),
-      scaleByDistance: new Cesium.NearFarScalar(1e6, 1.2, 5e6, 0.6),
-    },
+    // Cesium's native path renderer produces a single continuous historical
+    // trail, revealing only where the aircraft has already been.
     path: {
       leadTime: 0,
-      trailTime: Math.min(totalSeconds * 0.25, 1800),
-      width: 3,
-      resolution: 1,
-      material: new Cesium.PolylineGlowMaterialProperty({
-        glowPower: 0.25,
-        color: Cesium.Color.fromCssColorString('#dc1414').withAlpha(0.5),
-      }),
+      trailTime: totalSeconds,
+      resolution: 30,
+      width: 2,
+      material: Cesium.Color.fromCssColorString('#edf6ff').withAlpha(0.88),
     },
   })
 
@@ -227,42 +237,31 @@ function buildScene(viewer, flight) {
     label: { text: 'JFK', font: 'bold 12px sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineWidth: 2, outlineColor: Cesium.Color.BLACK, disableDepthTestDistance: Number.POSITIVE_INFINITY, pixelOffset: new Cesium.Cartesian2(0, 14) },
   })
 
-  viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(-40, 48, 5000000) })
+  setOverviewCamera(viewer, 0)
 }
 
-// Smooth camera tracking with lerping to avoid jumps.
-let lastCamTime = 0
+function setOverviewCamera(viewer, duration = 0.65) {
+  viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY)
+  viewer.camera.flyTo({
+    // A wide, overhead North Atlantic framing that keeps both LHR and JFK in view.
+    destination: Cesium.Cartesian3.fromDegrees(-37, 47, 6500000),
+    orientation: {
+      heading: Cesium.Math.toRadians(0),
+      pitch: Cesium.Math.toRadians(-90),
+      roll: 0,
+    },
+    duration,
+  })
+}
+
 function updateCamera(viewer, clock) {
   const pos = state.plane.position.getValue(clock.currentTime)
   if (!pos || state.cameraMode !== 'follow') return
-
-  const now = performance.now()
-  const dt = Math.min((now - lastCamTime) / 1000, 0.1)
-  lastCamTime = now
-
-  // Smooth look-at with offset that follows behind and above the aircraft.
-  const offset = new Cesium.Cartesian3(0, -8000, 12000)
-  const targetPos = Cesium.Cartesian3.add(pos, offset, new Cesium.Cartesian3())
-
-  // Get current camera position and lerp toward target.
-  const cam = viewer.camera
-  const currentPos = cam.position
-  const lerpFactor = 1 - Math.exp(-3 * dt) // Smooth exponential interpolation
-
-  const newPos = new Cesium.Cartesian3(
-    currentPos.x + (targetPos.x - currentPos.x) * lerpFactor,
-    currentPos.y + (targetPos.y - currentPos.y) * lerpFactor,
-    currentPos.z + (targetPos.z - currentPos.z) * lerpFactor
-  )
-
-  cam.setView({
-    destination: newPos,
-    orientation: {
-      heading: Cesium.Math.toRadians(0),
-      pitch: Cesium.Math.toRadians(-25),
-      roll: 0,
-    },
-  })
+  viewer.camera.lookAt(pos, new Cesium.HeadingPitchRange(
+    Cesium.Math.toRadians(120),
+    Cesium.Math.toRadians(-8),
+    12000,
+  ))
 }
 
 function updateClock(viewer) {
@@ -271,20 +270,62 @@ function updateClock(viewer) {
 }
 
 function bindControls(viewer) {
+  // A new Cesium viewer is created after returning Home. Remove the prior
+  // viewer's UI listeners first so each control always responds exactly once.
+  state.controlsAbort?.abort()
+  state.controlsAbort = new AbortController()
+  const listenerOptions = { signal: state.controlsAbort.signal }
+
   els.btnPause.addEventListener('click', () => {
     state.paused = !state.paused
     viewer.clock.shouldAnimate = !state.paused
     els.btnPause.textContent = state.paused ? '▶' : '⏸'
     els.btnPause.classList.toggle('active', !state.paused)
-  })
-  els.speedUp.addEventListener('click', () => { state.speedIdx = Math.min(SPEED_STEPS.length - 1, state.speedIdx + 1); updateClock(viewer) })
-  els.speedDown.addEventListener('click', () => { state.speedIdx = Math.max(0, state.speedIdx - 1); updateClock(viewer) })
+  }, listenerOptions)
+  els.speedUp.addEventListener('click', () => { state.speedIdx = Math.min(SPEED_STEPS.length - 1, state.speedIdx + 1); updateClock(viewer) }, listenerOptions)
+  els.speedDown.addEventListener('click', () => { state.speedIdx = Math.max(0, state.speedIdx - 1); updateClock(viewer) }, listenerOptions)
   document.querySelectorAll('#cameraMode .cn-btn').forEach((btn) => {
+    if (!btn.dataset.cam) return
     btn.addEventListener('click', () => {
       state.cameraMode = btn.dataset.cam
       document.querySelectorAll('#cameraMode .cn-btn').forEach((b) => b.classList.toggle('active', b === btn))
-    })
+      if (state.cameraMode === 'overview') setOverviewCamera(viewer)
+      else updateCamera(viewer, viewer.clock)
+    }, listenerOptions)
   })
+  document.getElementById('btnFocus').addEventListener('click', (event) => {
+    const focused = document.body.classList.toggle('focus-mode')
+    event.currentTarget.classList.toggle('active', focused)
+    event.currentTarget.textContent = focused ? 'Exit focus' : 'Focus'
+  }, listenerOptions)
+  document.getElementById('btnTheme').addEventListener('click', (event) => {
+    const light = document.body.classList.toggle('light-theme')
+    event.currentTarget.classList.toggle('active', light)
+    event.currentTarget.textContent = light ? 'Dark' : 'Theme'
+  }, listenerOptions)
+  document.querySelectorAll('[data-collapse]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const card = button.closest('.panel-card')
+      const collapsed = card.classList.toggle('collapsed')
+      button.textContent = collapsed ? '+' : '−'
+    }, listenerOptions)
+  })
+  document.querySelectorAll('[data-chart-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.chartMode = button.dataset.chartMode
+      document.querySelectorAll('[data-chart-mode]').forEach((item) => item.classList.toggle('active', item === button))
+      drawChart()
+    }, listenerOptions)
+  })
+  els.timeline.addEventListener('input', () => {
+    const fraction = Number(els.timeline.value) / Number(els.timeline.max)
+    viewer.clock.currentTime = Cesium.JulianDate.addSeconds(viewer.clock.startTime, fraction * state.totalDurationS, new Cesium.JulianDate())
+    tick(viewer, viewer.clock)
+  }, listenerOptions)
+  document.getElementById('libraryBtn').addEventListener('click', () => toggleLibrary(true), listenerOptions)
+  document.getElementById('libraryClose').addEventListener('click', () => toggleLibrary(false), listenerOptions)
+  document.getElementById('summaryClose').addEventListener('click', () => hideCompletion(), listenerOptions)
+  document.getElementById('replayBtn').addEventListener('click', () => replay(viewer), listenerOptions)
 }
 
 function tick(viewer, clock) {
@@ -311,6 +352,7 @@ function tick(viewer, clock) {
 
   els.hudProgress.textContent = `${(t * 100).toFixed(1)}%`
   els.progressBarFill.style.width = `${t * 100}%`
+  els.timeline.value = String(Math.round(t * Number(els.timeline.max)))
   els.hudElapsed.textContent = fmtTime(elapsed)
   els.hudFuelUsed.textContent = `${cumGt.toFixed(0)} kg`
   els.hudFuelRemaining.textContent = `${Math.max(0, state.totalFuelKg - cumGt).toFixed(0)} kg`
@@ -318,9 +360,17 @@ function tick(viewer, clock) {
   // Force meters from flight state.
   updateForceMeters(iv)
   updateMassPanel(iv, cumGt)
+  updatePhaseIndicator(iv, t)
 
   // Prediction comparison.
   updatePredictionComparison(iv, idx, cumGt, cumPhys, cumR3)
+  if (t >= 0.999 && !state.completed) showCompletion(cumGt, cumPhys, cumR3)
+}
+
+function updatePhaseIndicator(iv, progress) {
+  let phase = iv.phase && iv.phase !== 'unknown' ? iv.phase.toLowerCase() : ''
+  if (!phase) phase = progress < 0.04 ? 'takeoff' : progress < 0.15 ? 'climb' : progress < 0.9 ? 'cruise' : progress < 0.98 ? 'descent' : 'landing'
+  document.querySelectorAll('[data-phase-step]').forEach((step) => step.classList.toggle('active', step.dataset.phaseStep === phase))
 }
 
 function updateForceMeters(iv) {
@@ -389,6 +439,9 @@ function updatePredictionComparison(iv, idx, cumGt, cumPhys, cumR3) {
     state.chartActual.push(cumGt)
     state.chartPhysics.push(cumPhys)
     state.chartR3.push(cumR3)
+    state.chartActualRate.push(gt / Math.max(iv.durationS, 1))
+    state.chartPhysicsRate.push(phys / Math.max(iv.durationS, 1))
+    state.chartR3Rate.push(r3 / Math.max(iv.durationS, 1))
     drawChart()
   }
 }
@@ -401,12 +454,22 @@ function drawChart() {
   const H = canvas.height
   ctx.clearRect(0, 0, W, H)
 
-  const actual = state.chartActual
-  const phys = state.chartPhysics
-  const r3 = state.chartR3
+  const actual = state.chartMode === 'rate' ? state.chartActualRate : state.chartActual
+  const phys = state.chartMode === 'rate' ? state.chartPhysicsRate : state.chartPhysics
+  const r3 = state.chartMode === 'rate' ? state.chartR3Rate : state.chartR3
   if (actual.length === 0) return
 
-  const maxVal = Math.max(actual[actual.length - 1], phys[phys.length - 1], r3[r3.length - 1], 1)
+  const maxVal = Math.max(...actual, ...phys, ...r3, 1)
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)'
+  ctx.lineWidth = 1
+  for (let line = 1; line < 4; line++) {
+    const y = (H / 4) * line
+    ctx.beginPath()
+    ctx.moveTo(4, y)
+    ctx.lineTo(W - 4, y)
+    ctx.stroke()
+  }
 
   // OpenAP (white, dashed).
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'
@@ -447,6 +510,51 @@ function drawChart() {
   ctx.stroke()
 }
 
+function toggleLibrary(open) {
+  const drawer = document.getElementById('flightLibrary')
+  drawer.classList.toggle('open', open)
+  drawer.setAttribute('aria-hidden', String(!open))
+}
+
+function showCompletion(fuel, physics, r3) {
+  state.completed = true
+  state.paused = true
+  state.viewer.clock.shouldAnimate = false
+  els.btnPause.textContent = '▶'
+  const physicsError = physics - fuel
+  const r3Error = r3 - fuel
+  const improvement = Math.abs(physicsError) > 0 ? (1 - Math.abs(r3Error) / Math.abs(physicsError)) * 100 : 0
+  els.summaryFuel.textContent = `${fuel.toFixed(0)} kg`
+  els.summaryR3Error.textContent = `${r3Error >= 0 ? '+' : ''}${r3Error.toFixed(0)} kg`
+  els.summaryPhysicsError.textContent = `${physicsError >= 0 ? '+' : ''}${physicsError.toFixed(0)} kg`
+  els.summaryImprovement.textContent = `${improvement.toFixed(1)}% lower error`
+  els.completionModal.classList.add('open')
+  els.completionModal.setAttribute('aria-hidden', 'false')
+  els.liveRegion.textContent = 'Flight complete. Simulation summary is open.'
+}
+
+function hideCompletion() {
+  els.completionModal.classList.remove('open')
+  els.completionModal.setAttribute('aria-hidden', 'true')
+}
+
+function replay(viewer) {
+  state.chartActual = []
+  state.chartPhysics = []
+  state.chartR3 = []
+  state.chartActualRate = []
+  state.chartPhysicsRate = []
+  state.chartR3Rate = []
+  state.completed = false
+  state.paused = false
+  viewer.clock.currentTime = Cesium.JulianDate.clone(viewer.clock.startTime)
+  viewer.clock.shouldAnimate = true
+  els.btnPause.textContent = '⏸'
+  hideCompletion()
+  drawChart()
+  els.liveRegion.textContent = 'Flight replay restarted.'
+}
+
 async function launch() {
   const home = document.getElementById('homeOverlay')
   const simUI = document.getElementById('simUI')
@@ -462,6 +570,22 @@ document.getElementById('launchBtn').addEventListener('click', () => {
     const e = document.getElementById('hudEngine')
     if (e) e.textContent = 'Error: ' + err.message
   })
+})
+
+const researchModal = document.getElementById('researchModal')
+const setResearchOpen = (open) => {
+  researchModal.classList.toggle('open', open)
+  researchModal.setAttribute('aria-hidden', String(!open))
+  if (open) document.getElementById('researchClose').focus()
+  else document.getElementById('researchBtn').focus()
+}
+document.getElementById('researchBtn').addEventListener('click', () => setResearchOpen(true))
+document.getElementById('researchClose').addEventListener('click', () => setResearchOpen(false))
+researchModal.addEventListener('click', (event) => {
+  if (event.target === researchModal) setResearchOpen(false)
+})
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && researchModal.classList.contains('open')) setResearchOpen(false)
 })
 
 // Back button: stop the viewer and return to home.

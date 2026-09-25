@@ -168,6 +168,11 @@
       #routeSelect:focus {
         border-color: var(--panel-border-strong);
       }
+      #routeSelect:disabled {
+        cursor: default;
+        color: var(--text-dim);
+        opacity: 0.8;
+      }
 
       .route-pair {
         display: flex;
@@ -277,10 +282,12 @@
       /* Section cards */
       .panel-card {
         padding: 14px 16px;
-        background: rgba(14, 14, 14, 0.85);
+        background: linear-gradient(145deg, rgba(20, 23, 28, 0.9), rgba(10, 12, 16, 0.84));
         border: 1px solid var(--panel-border);
         border-radius: var(--radius);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(14px) saturate(125%);
+        -webkit-backdrop-filter: blur(14px) saturate(125%);
       }
       .panel-card.accent {
         border-color: rgba(220, 20, 20, 0.4);
@@ -303,6 +310,26 @@
         border-radius: 4px;
         letter-spacing: 0.5px;
       }
+      .panel-toggle,
+      .icon-btn {
+        border: 0;
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+        font: inherit;
+      }
+      .panel-toggle {
+        float: right;
+        width: 20px;
+        height: 18px;
+        margin-left: 7px;
+        border: 1px solid var(--panel-border);
+        border-radius: 5px;
+        line-height: 14px;
+      }
+      .panel-toggle:hover { color: var(--text); border-color: rgba(255,255,255,.3); }
+      .panel-card.collapsed { padding-bottom: 11px; }
+      .panel-card.collapsed > :not(.panel-label) { display: none; }
       .badge.live {
         background: rgba(70, 215, 160, 0.2);
         color: #46d7a0;
@@ -315,6 +342,36 @@
         background: rgba(255, 255, 255, 0.15);
         color: #ffffff;
       }
+      .badge.derived {
+        background: rgba(106, 174, 221, 0.16);
+        color: #9bcdf1;
+      }
+      .badge.replay {
+        background: rgba(255, 174, 65, 0.16);
+        color: #ffbc63;
+      }
+      .data-source {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin: -2px 0 11px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.45px;
+        text-transform: uppercase;
+      }
+      .data-source::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 10px currentColor;
+      }
+      .data-source.measured { color: #46d7a0; }
+      .data-source.derived { color: #9bcdf1; }
+      .data-source.static { color: #aeb2bb; }
 
       /* Force meters (compact) */
       .force-meter {
@@ -478,6 +535,35 @@
         opacity: 0.7;
       }
 
+      .phase-strip {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3px;
+        padding: 0 16px 14px;
+      }
+      .phase-strip span {
+        position: relative;
+        padding-top: 8px;
+        color: var(--muted);
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: .25px;
+        text-align: center;
+        text-transform: uppercase;
+      }
+      .phase-strip span::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        border-radius: 8px;
+        background: rgba(255,255,255,.12);
+      }
+      .phase-strip span.active { color: #fff; }
+      .phase-strip span.active::before { background: var(--accent); box-shadow: 0 0 10px rgba(220,20,20,.65); }
+
       /* Fuel Prediction panel */
       .pred-section-label {
         font-size: 11px;
@@ -515,6 +601,44 @@
       }
       .pred-val.err { color: rgba(255, 255, 255, 0.5); }
       .pred-val.good { color: #46d7a0; }
+      .help-tip {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        width: 13px;
+        height: 13px;
+        margin-left: 3px;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--muted);
+        cursor: help;
+        font: 800 8px/1 var(--font);
+        text-transform: lowercase;
+        vertical-align: 1px;
+      }
+      .help-tip::after {
+        content: attr(data-tip);
+        position: absolute;
+        z-index: 90;
+        right: 0;
+        bottom: calc(100% + 7px);
+        width: 190px;
+        padding: 8px;
+        border: 1px solid var(--panel-border);
+        border-radius: 7px;
+        background: #101218;
+        box-shadow: var(--shadow);
+        color: var(--text-dim);
+        font: 500 10px/1.35 var(--font);
+        letter-spacing: 0;
+        opacity: 0;
+        pointer-events: none;
+        text-transform: none;
+        transform: translateY(3px);
+        transition: opacity .15s, transform .15s;
+      }
+      .help-tip:hover::after, .help-tip:focus-visible::after { opacity: 1; transform: translateY(0); }
       .pred-chart-wrap {
         margin-top: 12px;
         background: rgba(0, 0, 0, 0.3);
@@ -522,6 +646,19 @@
         padding: 6px;
         border: 1px solid rgba(255, 255, 255, 0.05);
       }
+      .chart-toolbar { display: flex; gap: 6px; margin-top: 12px; }
+      .chart-btn {
+        padding: 5px 8px;
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        background: rgba(255,255,255,.03);
+        color: var(--text-dim);
+        cursor: pointer;
+        font: 700 9px var(--font);
+        letter-spacing: .45px;
+        text-transform: uppercase;
+      }
+      .chart-btn.active { background: var(--accent-soft); border-color: rgba(220,20,20,.55); color: #fff; }
       #predChart {
         display: block;
         width: 100%;
@@ -691,6 +828,88 @@
         overflow: hidden;
         position: relative;
       }
+      #timeline {
+        display: block;
+        width: 100%;
+        height: 14px;
+        margin: 5px 0 -4px;
+        cursor: pointer;
+        accent-color: var(--accent);
+      }
+
+      .icon-btn {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--panel-border);
+        border-radius: 7px;
+        font-size: 18px;
+        line-height: 1;
+      }
+      .icon-btn:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+      #flightHeader .icon-btn { margin-left: auto; }
+      #flightLibrary {
+        position: fixed;
+        z-index: 60;
+        top: var(--inset);
+        left: var(--inset);
+        width: min(360px, calc(100vw - var(--inset) * 2));
+        padding: 18px;
+        transform: translateX(calc(-100% - 30px));
+        transition: transform .25s ease;
+      }
+      #flightLibrary.open { transform: translateX(0); }
+      .drawer-head { display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; }
+      .drawer-head h2, .completion-card h2 { margin-top: 4px; font-size: 20px; }
+      .eyebrow { color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+      .flight-library-card { width: 100%; padding: 14px; border: 1px solid rgba(220,20,20,.55); border-radius: 10px; background: rgba(220,20,20,.1); color: var(--text); text-align: left; cursor: default; }
+      .flight-library-card span, .flight-library-card small { display: block; }
+      .library-route { font-size: 17px; font-weight: 800; letter-spacing: 1px; }
+      .library-route b { color: var(--accent); padding: 0 6px; }
+      .flight-library-card span + span { margin-top: 6px; font-size: 12px; color: var(--text-dim); }
+      .flight-library-card small { margin-top: 9px; color: var(--muted); font-size: 10px; }
+      .library-empty { margin-top: 14px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .modal-backdrop { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+      .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+      #researchModal { z-index: 110; }
+      .completion-card { width: min(460px, 100%); padding: 26px; }
+      .completion-route { margin-top: 6px; color: var(--text-dim); }
+      .completion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 22px 0; }
+      .completion-grid div { padding: 12px; border: 1px solid var(--panel-border); border-radius: 9px; background: rgba(255,255,255,.03); }
+      .completion-grid span, .completion-grid b { display: block; }
+      .completion-grid span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .55px; }
+      .completion-grid b { margin-top: 5px; font-size: 18px; }
+      .completion-actions { display: flex; justify-content: flex-end; gap: 8px; }
+      .primary-btn, .secondary-btn { padding: 10px 14px; border-radius: 8px; font: 700 11px var(--font); cursor: pointer; text-transform: uppercase; letter-spacing: .5px; }
+      .primary-btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
+      .secondary-btn { border: 1px solid var(--panel-border); background: transparent; color: var(--text-dim); }
+      .research-card { width: min(680px, 100%); padding: 28px; }
+      .research-card h2 { margin: 5px 0 8px; font-size: 23px; }
+      .research-card > p { color: var(--text-dim); line-height: 1.55; }
+      .research-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+      .research-grid article { padding: 14px; border: 1px solid var(--panel-border); border-radius: 10px; background: rgba(255,255,255,.035); }
+      .research-grid h3 { margin: 0 0 7px; color: var(--text); font-size: 12px; text-transform: uppercase; letter-spacing: .7px; }
+      .research-grid p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+      .research-note { margin: 0 0 20px; padding: 11px 13px; border-left: 2px solid var(--accent); background: rgba(230,20,20,.08); color: var(--muted); font-size: 11px; line-height: 1.5; }
+      body.focus-mode #leftRail, body.focus-mode #rightRail { opacity: 0; pointer-events: none; transform: translateY(-8px); }
+      body.focus-mode #bottomBar { opacity: .25; }
+      body.light-theme {
+        --bg-deep: #e8edf3;
+        --panel: rgba(250,252,255,.87);
+        --panel-border: rgba(13,25,40,.16);
+        --text: #17202b;
+        --text-dim: #415063;
+        --muted: #637083;
+        --shadow: 0 14px 38px rgba(20,32,48,.18);
+      }
+      body.light-theme .panel-card, body.light-theme #flightHeader { background: rgba(248,250,253,.9); }
+      body.light-theme .mass-section-label, body.light-theme .pred-section-label.ground-truth { color: #17202b; }
+      body.light-theme .force-track, body.light-theme #progressBarTrack { background: rgba(20,32,48,.12); }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+      button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
       #progressBarFill {
         height: 100%;
         width: 0%;
@@ -1083,6 +1302,11 @@
         #legend {
           display: none;
         }
+        #rightRail { max-height: calc(100vh - 170px); }
+        .panel-card { padding: 12px; }
+        .completion-grid { grid-template-columns: 1fr; }
+        .research-grid { grid-template-columns: 1fr; }
+        #flightLibrary { bottom: 10px; top: auto; }
         .stat-grid {
           grid-template-columns: 1fr 1fr;
         }
@@ -1200,7 +1424,7 @@
 
         <div class="home-cta">
           <button class="home-launch" id="launchBtn">LAUNCH SIMULATION &rarr;</button>
-          <a class="home-secondary" href="README.md">View Research</a>
+          <button class="home-secondary" id="researchBtn" type="button">View Research</button>
           <p class="home-note">
             Data: EUROCONTROL PRC 2025 challenge &middot; R3 Combined RMSE 221.33 kg &middot; Distilled student via ONNX
           </p>
@@ -1208,9 +1432,26 @@
       </div>
     </div>
 
+    <section id="researchModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="researchTitle">
+      <div class="research-card glass">
+        <span class="eyebrow">Research &amp; method</span>
+        <h2 id="researchTitle">Fuel-burn prediction, explained</h2>
+        <p>This demo visualizes a PRC-style flight replay. It combines a physics baseline with a learned residual model to estimate interval fuel burn and evolving aircraft mass.</p>
+        <div class="research-grid">
+          <article><h3>Flight inputs</h3><p>Altitude, groundspeed, vertical rate, route progress, and aircraft type are used as simulation inputs.</p></article>
+          <article><h3>Prediction</h3><p>OpenAP-style performance physics supplies a baseline; the R3 model corrects the remaining error.</p></article>
+          <article><h3>What to compare</h3><p>Use the live panels and chart to compare predicted fuel burn with the supplied ground-truth intervals.</p></article>
+        </div>
+        <p class="research-note">The headline RMSE values are test-set aggregate benchmarks, not accuracy guarantees for this single replay. The displayed flight values are provided by the current demo data source.</p>
+        <div class="completion-actions"><button id="researchClose" class="primary-btn" type="button">Back to simulator</button></div>
+      </div>
+    </section>
+
     <!-- ================= SIMULATION ================= -->
     <div id="simUI" aria-hidden="true">
     <div id="cesiumContainer"></div>
+
+    <div id="liveRegion" class="sr-only" aria-live="polite"></div>
 
     <!-- Back button -->
     <button id="backBtn" class="back-btn" title="Back to Home">&larr; Home</button>
@@ -1219,6 +1460,8 @@
     <div id="cameraMode" class="glass">
       <button class="cn-btn" data-cam="follow">Follow</button>
       <button class="cn-btn active" data-cam="overview">Overview</button>
+      <button class="cn-btn" id="btnFocus" title="Hide data panels to focus on the route">Focus</button>
+      <button class="cn-btn" id="btnTheme" title="Toggle high-contrast light interface">Theme</button>
     </div>
 
     <!-- Left rail: flight card -->
@@ -1230,10 +1473,13 @@
             <div id="flightTitle">AeroSim</div>
             <div id="hudEngine" class="subtitle">—</div>
           </div>
+          <button id="libraryBtn" class="icon-btn" title="Open flight library" aria-label="Open flight library">☷</button>
         </div>
 
         <div id="routePicker">
-          <select id="routeSelect"></select>
+          <select id="routeSelect" aria-label="Flight data source" disabled>
+            <option>Demo flight · LHR → JFK</option>
+          </select>
 
           <div class="route-pair">
             <div class="city">
@@ -1266,14 +1512,18 @@
             <div class="value" id="hudFuelUsed"><span class="unit">0</span> kg</div>
           </div>
         </div>
+        <div class="phase-strip" aria-label="Flight phase">
+          <span data-phase-step="takeoff">Takeoff</span><span data-phase-step="climb">Climb</span><span data-phase-step="cruise">Cruise</span><span data-phase-step="descent">Descent</span><span data-phase-step="landing">Landing</span>
+        </div>
       </section>
     </aside>
 
     <!-- Right rail: forces + mass + prediction -->
     <aside id="rightRail">
       <!-- Aerodynamic Forces -->
-      <section class="panel-card">
-        <div class="panel-label">Aerodynamic Forces <span class="badge live">Live</span></div>
+      <section class="panel-card" data-panel="forces">
+        <div class="panel-label">Aerodynamic Forces <button class="panel-toggle" data-collapse aria-label="Collapse Aerodynamic Forces">−</button><span class="badge derived">Derived</span></div>
+        <div class="data-source derived">Frontend visualization from flight state</div>
 
         <div class="force-meter">
           <div class="force-header">
@@ -1303,8 +1553,9 @@
       </section>
 
       <!-- R3 Dynamic Mass -->
-      <section class="panel-card accent">
-        <div class="panel-label">R3 Dynamic Mass <span class="badge live">Live</span></div>
+      <section class="panel-card accent" data-panel="mass">
+        <div class="panel-label">Flight Mass Estimate <button class="panel-toggle" data-collapse aria-label="Collapse Flight Mass Estimate">−</button><span class="badge derived">Derived</span></div>
+        <div class="data-source derived">Calculated from fuel-burn progression</div>
 
         <div class="mass-section-label">Aircraft State</div>
         <div class="mass-row"><span class="mass-label">Takeoff Mass</span><span class="mass-val" id="massTakeoff">&mdash;</span></div>
@@ -1326,27 +1577,32 @@
       </section>
 
       <!-- Fuel Prediction: Current Flight -->
-      <section class="panel-card accent">
-        <div class="panel-label">Fuel Prediction &mdash; Current Flight <span class="badge live">Live</span></div>
+      <section class="panel-card accent" data-panel="prediction">
+        <div class="panel-label">Fuel Prediction &mdash; Current Flight <button class="panel-toggle" data-collapse aria-label="Collapse Fuel Prediction">−</button><span class="badge replay">Replay</span></div>
+        <div class="data-source measured">Saved PRC interval data</div>
 
         <div class="pred-section-label ground-truth">Ground Truth (Measured)</div>
         <div class="pred-row"><span class="pred-label">Actual Fuel</span><span class="pred-val" id="predGt">&mdash;</span></div>
 
         <div class="pred-section-label benchmark">Baseline Prediction</div>
-        <div class="pred-row"><span class="pred-label">OpenAP Physics</span><span class="pred-val" id="predOpenap">&mdash;</span></div>
+        <div class="pred-row"><span class="pred-label">OpenAP Physics <button class="help-tip" data-tip="A physics-based baseline estimate used for comparison." aria-label="About OpenAP Physics">i</button></span><span class="pred-val" id="predOpenap">&mdash;</span></div>
 
         <div class="pred-section-label model">AeroTwin R3</div>
-        <div class="pred-row highlight"><span class="pred-label">R3 Prediction</span><span class="pred-val" id="predR3">&mdash;</span></div>
+        <div class="pred-row highlight"><span class="pred-label">R3 Prediction <button class="help-tip" data-tip="The saved AeroTwin R3 prediction for this interval." aria-label="About R3 Prediction">i</button></span><span class="pred-val" id="predR3">&mdash;</span></div>
 
         <div class="pred-sep"></div>
 
         <div class="pred-section-label error">Error Analysis</div>
-        <div class="pred-row"><span class="pred-label">OpenAP Abs Error</span><span class="pred-val err" id="predOpenapErr">&mdash;</span></div>
-        <div class="pred-row"><span class="pred-label">R3 Abs Error</span><span class="pred-val err" id="predR3Err">&mdash;</span></div>
+        <div class="pred-row"><span class="pred-label">OpenAP Error</span><span class="pred-val err" id="predOpenapErr">&mdash;</span></div>
+        <div class="pred-row"><span class="pred-label">R3 Error</span><span class="pred-val err" id="predR3Err">&mdash;</span></div>
         <div class="pred-row highlight"><span class="pred-label">R3 Relative Error</span><span class="pred-val" id="predR3Rel">&mdash;</span></div>
 
+        <div class="chart-toolbar" role="group" aria-label="Prediction chart view">
+          <button class="chart-btn active" data-chart-mode="cumulative">Cumulative</button>
+          <button class="chart-btn" data-chart-mode="rate">Burn rate</button>
+        </div>
         <div class="pred-chart-wrap">
-          <canvas id="predChart" width="260" height="80"></canvas>
+          <canvas id="predChart" width="520" height="160" aria-label="Fuel prediction comparison chart"></canvas>
         </div>
         <div class="pred-legend-chart">
           <span><span class="pred-dot gt"></span>Truth</span>
@@ -1357,15 +1613,16 @@
       </section>
 
       <!-- Benchmark Performance (static aggregate metrics) -->
-      <section class="panel-card">
-        <div class="panel-label">Benchmark Performance <span class="badge benchmark">Aggregate</span></div>
+      <section class="panel-card" data-panel="benchmark">
+        <div class="panel-label">Benchmark Performance <button class="panel-toggle" data-collapse aria-label="Collapse Benchmark Performance">−</button><span class="badge benchmark">Static</span></div>
+        <div class="data-source static">Official evaluation snapshot</div>
 
-        <div class="bench-row"><span class="bench-label">R3 Combined RMSE</span><span class="bench-val">221.33 kg</span></div>
+        <div class="bench-row"><span class="bench-label">R3 Combined RMSE <button class="help-tip" data-tip="Root Mean Squared Error across the Rank and Final test splits. Lower is better." aria-label="About RMSE">i</button></span><span class="bench-val">221.33 kg</span></div>
         <div class="bench-row highlight"><span class="bench-label">R3 Final RMSE</span><span class="bench-val">213.73 kg</span></div>
         <div class="bench-row"><span class="bench-label">Baseline RMSE</span><span class="bench-val">228.25 kg</span></div>
         <div class="bench-sep"></div>
-        <div class="bench-row"><span class="bench-label">R3 Rank</span><span class="bench-val">232.53</span></div>
-        <div class="bench-row improve"><span class="bench-label">Final Rank</span><span class="bench-val">213.73</span></div>
+        <div class="bench-row"><span class="bench-label">Rank-split RMSE</span><span class="bench-val">232.53 kg</span></div>
+        <div class="bench-row improve"><span class="bench-label">Final-split RMSE</span><span class="bench-val">213.73 kg</span></div>
 
         <div class="bench-note">Test-set aggregate &middot; not single-flight</div>
       </section>
@@ -1381,6 +1638,7 @@
         <div id="progressBarTrack">
           <div id="progressBarFill"></div>
         </div>
+        <input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Scrub flight timeline">
       </div>
 
       <div id="transport">
@@ -1390,6 +1648,31 @@
         <button class="ctrl-btn" id="speedUp" title="Faster">+</button>
       </div>
     </div>
+
+    <aside id="flightLibrary" class="glass" aria-label="Flight library" aria-hidden="true">
+      <div class="drawer-head"><div><span class="eyebrow">Flight library</span><h2>Available flights</h2></div><button id="libraryClose" class="icon-btn" aria-label="Close flight library">×</button></div>
+      <button class="flight-library-card selected" aria-current="true">
+        <span class="library-route">LHR <b>→</b> JFK</span>
+        <span>A320 family · PRC demo replay</span>
+        <small>Loaded from the current simulation data source</small>
+      </button>
+      <div class="library-empty">More flights will appear here automatically when the existing data source provides them. No backend changes are required for this UI.</div>
+    </aside>
+
+    <section id="completionModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="completionTitle">
+      <div class="completion-card glass">
+        <span class="eyebrow">Flight complete</span>
+        <h2 id="completionTitle">Simulation summary</h2>
+        <p class="completion-route" id="completionRoute">LHR → JFK</p>
+        <div class="completion-grid">
+          <div><span>Total fuel used</span><b id="summaryFuel">—</b></div>
+          <div><span>R3 total error</span><b id="summaryR3Error">—</b></div>
+          <div><span>Physics total error</span><b id="summaryPhysicsError">—</b></div>
+          <div><span>R3 improvement</span><b id="summaryImprovement">—</b></div>
+        </div>
+        <div class="completion-actions"><button id="summaryClose" class="secondary-btn">Review map</button><button id="replayBtn" class="primary-btn">Replay flight</button></div>
+      </div>
+    </section>
     </div><!-- /#simUI -->
 
     <script type="module" src="/src/main.js"></script>

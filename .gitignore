@@ -241,6 +241,9 @@ dist-ssr
 
 #data
 data/
+# The simulator's data adapter is source code, not a generated dataset.
+!aero_sim/src/data/
+!aero_sim/src/data/routes.js
 
 # Generated model artifacts (regenerable, may embed absolute paths)
 *.pt
