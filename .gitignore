@@ -254,3 +254,4 @@ results/distillation/**/*.pt
 results/distillation/**/*.pkl
 distillation_dataset.parquet
 cache/
+main.tex
