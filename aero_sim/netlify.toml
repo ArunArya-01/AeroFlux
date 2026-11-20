@@ -1,0 +1,11 @@
+[build]
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  included_files = ["public/models/demo_flight.json"]
+
+[[redirects]]
+  from = "/api/flight"
+  to = "/.netlify/functions/flight"
+  status = 200

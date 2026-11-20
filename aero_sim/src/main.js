@@ -12,7 +12,8 @@ import { loadDemoFlight } from './data/routes.js'
 // The saved validation replay is measured in real flight seconds.  AeroSim
 // deliberately advances that same timeline at 220x so a roughly nine-hour
 // flight can be demonstrated end-to-end in about two and a half minutes.
-const SPEED_STEPS = [10, 50, 100, 220, 500, 1000, 2000]
+// Include real-time playback so the full saved flight can be reviewed at 1×.
+const SPEED_STEPS = [1, 10, 50, 100, 220, 500, 1000, 2000]
 const DEMO_SPEED = 220
 
 const state = {
@@ -533,6 +534,7 @@ function updateAircraftHover(viewer) {
   const t = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, viewer.clock.startTime) / state.totalDurationS))
   const intervalIndex = Math.min(state.intervals.length - 1, Math.floor(t * (state.intervals.length - 1)))
   const interval = state.intervals[intervalIndex]
+  const cartographic = Cesium.Cartographic.fromCartesian(position)
   const futureTime = Cesium.JulianDate.addSeconds(viewer.clock.currentTime, 30, new Cesium.JulianDate())
   const future = state.plane.position.getValue(futureTime)
 

@@ -2,7 +2,9 @@
 // the simulator UI. Keeping this at the boundary lets the simulation use the
 // original PRC-exported JSON without duplicating or altering the source data.
 
-const DEMO_FLIGHT_URL = '/models/demo_flight.json'
+// Flight telemetry is served by the backend function. The browser only
+// requests the API response; it never reads the bundled dataset directly.
+const DEMO_FLIGHT_URL = '/api/flight'
 
 export async function loadDemoFlight() {
   const response = await fetch(DEMO_FLIGHT_URL)
@@ -10,7 +12,8 @@ export async function loadDemoFlight() {
     throw new Error(`Could not load demo flight data (${response.status})`)
   }
 
-  const rows = await response.json()
+  const payload = await response.json()
+  const rows = Array.isArray(payload) ? payload : payload.intervals
   if (!Array.isArray(rows) || rows.length === 0) {
     throw new Error('Demo flight data is empty or invalid')
   }
@@ -34,11 +37,11 @@ export async function loadDemoFlight() {
   })
 
   return {
-    origin: 'LHR',
-    originName: 'London Heathrow',
-    destination: 'JFK',
-    destinationName: 'New York John F. Kennedy',
-    aircraftType: 'A320 family',
+    origin: payload.origin || 'LHR',
+    originName: payload.originName || 'London Heathrow',
+    destination: payload.destination || 'JFK',
+    destinationName: payload.destinationName || 'New York John F. Kennedy',
+    aircraftType: payload.aircraftType || 'A320 family',
     intervals,
   }
 }
