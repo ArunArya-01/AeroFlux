@@ -15,17 +15,23 @@ export async function loadDemoFlight() {
     throw new Error('Demo flight data is empty or invalid')
   }
 
-  const intervals = rows.map((row) => ({
+  const intervals = rows.map((row) => {
+    const altitudeFt = Number(row.mean_altitude) || 0
+    return {
     durationS: Number(row.duration_s) || 0,
     groundTruth: Number(row.ground_truth) || 0,
     physicsFuelKg: Number(row.physics_fuel_kg) || 0,
     r3Prediction: Number(row.teacher_prediction) || 0,
     phase: row.phase || 'unknown',
     // The exported telemetry is in feet, knots, and feet/minute.
-    altitudeM: Number(row.mean_altitude) * 0.3048,
+    // Keep the source unit for the dashboard, while retaining metres for the
+    // Cesium flight path and physics visualizations.
+    altitudeFt,
+    altitudeM: altitudeFt * 0.3048,
     groundSpeedMps: Number(row.mean_groundspeed) * 0.514444,
     verticalRateMps: Number(row.mean_vertical_rate) * 0.00508,
-  }))
+    }
+  })
 
   return {
     origin: 'LHR',

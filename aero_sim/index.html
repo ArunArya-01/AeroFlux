@@ -73,6 +73,29 @@
         margin-bottom: 10px;
       }
 
+      .time-scale-card {
+        margin: 0 16px 14px;
+        padding: 11px 12px;
+        border: 1px solid rgba(220, 20, 20, 0.38);
+        border-radius: var(--radius-sm);
+        background: linear-gradient(135deg, rgba(220, 20, 20, 0.16), rgba(255, 255, 255, 0.035));
+      }
+      .time-scale-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .time-scale-title { color: var(--text); font-size: 10px; font-weight: 800; letter-spacing: .85px; text-transform: uppercase; }
+      .time-scale-badge { padding: 3px 6px; border-radius: 4px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .time-scale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 10px; }
+      .time-scale-grid span, .time-scale-grid b { display: block; }
+      .time-scale-grid span { color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .65px; text-transform: uppercase; }
+      .time-scale-grid b { margin-top: 3px; color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
+      .time-scale-note { margin-top: 9px; color: var(--text-dim); font-size: 10px; line-height: 1.35; }
+      .time-scale-signals { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 10px; }
+      .time-scale-signal { padding: 7px 8px; border-radius: 6px; background: rgba(0, 0, 0, .2); }
+      .time-scale-signal span, .time-scale-signal b { display: block; }
+      .time-scale-signal span { color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
+      .time-scale-signal b { margin-top: 3px; color: var(--text); font-size: 11px; font-variant-numeric: tabular-nums; }
+      .time-scale-signal.phase b { color: #ff7777; }
+      .time-scale-signal.error b { color: #4ee6b0; }
+
       /* ---------- Simulation UI ---------- */
       #simUI {
         position: fixed;
@@ -1139,7 +1162,10 @@
         z-index: 100;
         background: #0a0a0a;
         display: flex;
-        align-items: center;
+        /* Keep long landing-page content anchored at the scrollable top.
+           Centering a taller-than-viewport flex child makes its beginning
+           overflow above the reachable scroll range. */
+        align-items: flex-start;
         justify-content: center;
         overflow-y: auto;
         transition: opacity 0.6s ease, visibility 0.6s ease;
@@ -1171,20 +1197,6 @@
         text-align: center;
         margin-bottom: 48px;
       }
-      .home-logo {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        background: #dc1414;
-        color: #fff;
-        font-weight: 800;
-        font-size: 22px;
-        letter-spacing: 0.5px;
-        margin: 0 auto 22px;
-        box-shadow: 0 0 0 4px rgba(220, 20, 20, 0.18), 0 12px 40px rgba(220, 20, 20, 0.4);
-      }
       .home-hero h1 {
         font-size: 44px;
         font-weight: 900;
@@ -1193,12 +1205,12 @@
         color: #ffffff;
       }
       .home-tagline {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
         color: #dc1414;
         margin: 0 0 14px;
-        letter-spacing: 0.4px;
-        text-transform: uppercase;
+        letter-spacing: 0.15px;
+        line-height: 1.45;
       }
       .home-lede {
         font-size: 15px;
@@ -1284,6 +1296,32 @@
         padding: 4px 0;
         line-height: 1;
       }
+
+      /* Presentation time scaling */
+      .time-compression {
+        padding: 20px;
+        border: 1px solid rgba(220, 20, 20, 0.34);
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, rgba(220, 20, 20, 0.11), rgba(255, 255, 255, 0.025));
+      }
+      .time-compression-lede {
+        margin: 0 0 16px;
+        color: var(--text-dim);
+        font-size: 13px;
+        line-height: 1.55;
+        text-align: center;
+      }
+      .time-compression-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: 10px; }
+      .time-compression-metric { display: grid; place-items: center; min-height: 102px; padding: 13px 10px; border: 1px solid rgba(255,255,255,.11); border-radius: 10px; background: rgba(0,0,0,.22); text-align: center; }
+      .time-compression-metric.accent { border-color: rgba(220, 20, 20, .52); background: rgba(220, 20, 20, .12); }
+      .time-compression-metric span, .time-compression-metric b, .time-compression-metric small { display: block; }
+      .time-compression-metric span { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; }
+      .time-compression-metric b { margin: 5px 0 3px; color: var(--text); font-size: 25px; font-variant-numeric: tabular-nums; }
+      .time-compression-metric.accent b { color: #ff6666; }
+      .time-compression-metric small { color: var(--text-dim); font-size: 10px; }
+      .time-compression-arrow { align-self: center; color: var(--accent); font-size: 22px; font-weight: 800; }
+      .time-compression-note { margin: 15px 0 0; color: var(--text-dim); font-size: 11px; line-height: 1.5; text-align: center; }
+      .time-compression-note strong { color: var(--text); }
 
       /* Key Result */
       .key-result {
@@ -1449,6 +1487,9 @@
       }
 
       @media (max-width: 640px) {
+        .time-compression-flow { grid-template-columns: 1fr; gap: 7px; }
+        .time-compression-arrow { display: none; }
+        .time-compression-metric { min-height: auto; }
         #mobilePanelDock { position: fixed; z-index: 42; right: 10px; bottom: 82px; display: flex; gap: 6px; padding: 5px; border: 1px solid var(--panel-border); border-radius: 11px; background: var(--panel); box-shadow: var(--shadow); }
         .mobile-panel-btn { min-width: 62px; padding: 8px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--muted); font: 700 9px var(--font); letter-spacing: .5px; text-transform: uppercase; }
         .mobile-panel-btn.active { border-color: rgba(237,28,28,.65); background: rgba(237,28,28,.14); color: var(--text); }
@@ -1488,9 +1529,8 @@
     <div id="homeOverlay">
       <div class="home-scroll">
         <header class="home-hero">
-          <div class="home-logo">AF</div>
           <h1>AeroFlux</h1>
-          <p class="home-tagline">PHYSICS-GUIDED MACHINE LEARNING FOR AIRCRAFT FUEL CONSUMPTION PREDICTION</p>
+          <p class="home-tagline">Understanding Aircraft Fuel Consumption from Sparse Flight Observations: Physics-Informed Representations, Dynamic Mass and Model Generalization</p>
           <p class="home-lede">
             Predict aircraft fuel consumption from sparse flight data by combining aircraft-performance physics, dynamic mass representation, and machine learning.
           </p>
@@ -1546,6 +1586,27 @@
                 <p>Per-interval fuel burn prediction validated against ground-truth labels.</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="home-section" aria-labelledby="timeCompressionTitle">
+          <h2 id="timeCompressionTitle">AeroSim Time Compression</h2>
+          <div class="time-compression">
+            <p class="time-compression-lede">AeroSim presents the full saved flight lifecycle in review-friendly time without changing the replay data or frozen model outputs.</p>
+            <div class="time-compression-flow" aria-label="Time compression from the saved flight to the AeroSim demonstration">
+              <div class="time-compression-metric">
+                <span>Saved flight</span><b>09:04:19</b><small>real-world replay duration</small>
+              </div>
+              <span class="time-compression-arrow" aria-hidden="true">÷</span>
+              <div class="time-compression-metric accent">
+                <span>Presentation scale</span><b>220×</b><small>accelerated simulation clock</small>
+              </div>
+              <span class="time-compression-arrow" aria-hidden="true">=</span>
+              <div class="time-compression-metric">
+                <span>AeroSim demo</span><b>02:28</b><small>complete visual replay</small>
+              </div>
+            </div>
+            <p class="time-compression-note"><strong>1 demo second = 220 seconds of saved flight time (3 min 40 sec).</strong> Flight-phase order, altitude profile, fuel labels, and model predictions are preserved; only presentation time is accelerated.</p>
           </div>
         </section>
 
@@ -1608,6 +1669,7 @@
         <h2 id="researchTitle">Fuel-burn prediction, explained</h2>
         <p>This demo visualizes a PRC-style flight replay. It combines a physics baseline with a learned residual model to estimate interval fuel burn and evolving aircraft mass.</p>
         <div class="research-grid">
+          <article><h3>Presentation time</h3><p>The saved nine-hour replay is compressed to roughly 2–3 minutes. The clock is accelerated; the saved inputs and model outputs are not changed.</p></article>
           <article><h3>Flight inputs</h3><p>Altitude, groundspeed, vertical rate, route progress, and aircraft type are used as simulation inputs.</p></article>
           <article><h3>Prediction</h3><p>OpenAP-style performance physics supplies a baseline; the R3 model corrects the remaining error.</p></article>
           <article><h3>What to compare</h3><p>Use the live panels and chart to compare predicted fuel burn with the supplied ground-truth intervals.</p></article>
@@ -1662,6 +1724,7 @@
     <div id="cameraMode" class="glass">
       <button class="cn-btn" data-cam="follow">Follow</button>
       <button class="cn-btn active" data-cam="overview">Overview</button>
+      <button class="cn-btn" id="btnGuide" title="Explain the demo and its time scaling">Guide</button>
       <button class="cn-btn" id="btnFocus" title="Hide data panels to focus on the route">Focus</button>
       <button class="cn-btn" id="btnTheme" title="Toggle high-contrast light interface">Theme</button>
       <button class="cn-btn" id="commandPaletteBtn" title="Open command palette">⌘K</button>
@@ -1719,18 +1782,35 @@
             <div class="value" id="hudAircraft">—</div>
           </div>
           <div class="stat">
-            <div class="label">Distance</div>
-            <div class="value" id="hudDistance">—</div>
+            <div class="label">Live Altitude</div>
+            <div class="value" id="hudAltitude">0 ft</div>
           </div>
           <div class="stat">
-            <div class="label">Elapsed</div>
-            <div class="value" id="hudElapsed">00:00:00</div>
+            <div class="label">Demo Runtime</div>
+            <div class="value" id="hudDemoDuration">0:00</div>
           </div>
           <div class="stat">
             <div class="label">Fuel Used <button class="help-tip" data-tip="Fuel consumed so far in the replay. Source: saved ground-truth interval labels." aria-label="About fuel used">i</button></div>
             <div class="value" id="hudFuelUsed"><span class="unit">0</span> kg</div>
           </div>
         </div>
+        <section class="time-scale-card" aria-label="Demonstration time scaling">
+          <div class="time-scale-head">
+            <span class="time-scale-title">Presentation time scale</span>
+            <span class="time-scale-badge" id="timeScaleValue">220×</span>
+          </div>
+          <div class="time-scale-grid">
+            <div><span>Dataset flight</span><b id="realDuration">00:00:00</b></div>
+            <div><span>Demo runtime</span><b id="demoDuration">0:00</b></div>
+            <div><span>Real equivalent elapsed</span><b id="hudElapsed">00:00:00</b></div>
+            <div><span>Demo elapsed</span><b id="demoElapsed">0:00</b></div>
+          </div>
+          <div class="time-scale-signals" aria-label="Live simulation signals">
+            <div class="time-scale-signal phase"><span>Active phase</span><b id="activePhase">Takeoff</b></div>
+            <div class="time-scale-signal error"><span>R3 interval error</span><b id="hudR3Error">—</b></div>
+          </div>
+          <p class="time-scale-note">Presentation time is accelerated; saved replay values and model outputs are unchanged.</p>
+        </section>
         <div class="phase-strip" aria-label="Flight event timeline">
           <button type="button" data-phase-step="takeoff" title="Jump to takeoff">Takeoff</button><button type="button" data-phase-step="climb" title="Jump to climb">Climb</button><button type="button" data-phase-step="cruise" title="Jump to cruise">Cruise</button><button type="button" data-phase-step="descent" title="Jump to descent">Descent</button><button type="button" data-phase-step="landing" title="Jump to landing">Landing</button>
         </div>

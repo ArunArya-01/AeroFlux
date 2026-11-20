@@ -9,11 +9,15 @@ import 'cesium/Build/Cesium/Widgets/widgets.css'
 
 import { loadDemoFlight } from './data/routes.js'
 
-const SPEED_STEPS = [10, 50, 100, 250, 500, 1000, 2000]
+// The saved validation replay is measured in real flight seconds.  AeroSim
+// deliberately advances that same timeline at 220x so a roughly nine-hour
+// flight can be demonstrated end-to-end in about two and a half minutes.
+const SPEED_STEPS = [10, 50, 100, 220, 500, 1000, 2000]
+const DEMO_SPEED = 220
 
 const state = {
   viewer: null,
-  speedIdx: 2,
+  speedIdx: SPEED_STEPS.indexOf(DEMO_SPEED),
   paused: false,
   cameraMode: 'overview',
   running: false,
@@ -50,8 +54,9 @@ const els = {}
 function grab() {
   ;[
     'hudOrigin', 'hudOriginName', 'hudDest', 'hudDestName',
-    'hudAircraft', 'hudDistance', 'hudElapsed', 'hudFuelUsed',
+    'hudAircraft', 'hudAltitude', 'hudElapsed', 'hudFuelUsed',
     'hudFuelRemaining', 'hudEngine', 'hudProgress',
+    'realDuration', 'demoDuration', 'hudDemoDuration', 'timeScaleValue', 'demoElapsed', 'activePhase', 'hudR3Error',
     'progressBarFill', 'btnPause', 'speedDown', 'speedUp', 'speedLabel',
     'thrustVal', 'thrustFill', 'dragVal', 'dragFill', 'liftVal', 'liftFill',
     'massTakeoff', 'massCurrent', 'massLanding', 'hudFuelRemaining', 'massFuelBurn',
@@ -86,6 +91,16 @@ function fmtTime(sec) {
   return `${pad(h)}:${pad(m)}:${pad(s)}`
 }
 
+function fmtDemoTime(sec) {
+  const m = Math.floor(sec / 60)
+  const s = Math.floor(sec % 60)
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
+function fmtAltitudeFt(altitudeFt) {
+  return `${(Math.round((altitudeFt || 0) / 100) * 100).toLocaleString('en-US')} ft`
+}
+
 async function main() {
   grab()
   bindMetricTooltips()
@@ -93,6 +108,11 @@ async function main() {
   const viewer = new Cesium.Viewer('cesiumContainer', {
     timeline: false,
     animation: false,
+    // Do not rely on Cesium's default Ion imagery. It can silently fall back
+    // to an untextured dark surface when credentials or tiles are unavailable.
+    baseLayer: new Cesium.ImageryLayer(new Cesium.OpenStreetMapImageryProvider({
+      url: 'https://tile.openstreetmap.org/',
+    })),
     baseLayerPicker: false,
     geocoder: false,
     homeButton: false,
@@ -103,12 +123,13 @@ async function main() {
     fullscreenButton: false,
   })
   state.viewer = viewer
-  // Keep the globe legible even when Cesium's optional online imagery tiles
-  // are unavailable (for example, in an offline demo environment).
+  // Keep the globe legible throughout the overview and follow cameras.
   viewer.scene.globe.show = true
   viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString('#17324d')
   viewer.scene.backgroundColor = Cesium.Color.fromCssColorString('#06111f')
-  viewer.scene.globe.enableLighting = true
+  // Lighting can place this North-Atlantic route on the night side and make
+  // an otherwise loaded globe look like empty space during a presentation.
+  viewer.scene.globe.enableLighting = false
   viewer.scene.globe.atmosphereLightFactor = 1.2
   viewer.scene.skyAtmosphere.show = true
 
@@ -123,9 +144,13 @@ async function main() {
   els.hudDest.textContent = flight.destination
   els.hudDestName.textContent = flight.destinationName
   els.hudAircraft.textContent = flight.aircraftType
-  els.hudDistance.textContent = `${(state.totalDurationS * 0.24 / 1000).toFixed(0)} km`
+  els.hudAltitude.textContent = '0 ft'
   els.hudEngine.textContent = 'PRC flight replay'
   els.completionRoute.textContent = `${flight.origin} → ${flight.destination}`
+  els.realDuration.textContent = fmtTime(state.totalDurationS)
+  els.demoDuration.textContent = fmtDemoTime(state.totalDurationS / DEMO_SPEED)
+  els.hudDemoDuration.textContent = fmtDemoTime(state.totalDurationS / DEMO_SPEED)
+  els.timeScaleValue.textContent = `${DEMO_SPEED}×`
 
   bindControls(viewer)
   buildScene(viewer, flight)
@@ -327,19 +352,66 @@ function buildScene(viewer, flight) {
     },
   })
 
-  // Origin / destination markers.
-  viewer.entities.add({
-    position: Cesium.Cartesian3.fromDegrees(startLon, startLat, 0),
-    point: { pixelSize: 8, color: Cesium.Color.WHITE, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-    label: { text: 'LHR', font: 'bold 12px sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineWidth: 2, outlineColor: Cesium.Color.BLACK, disableDepthTestDistance: Number.POSITIVE_INFINITY, pixelOffset: new Cesium.Cartesian2(0, 14) },
+  // High-contrast airport pins make the departure and arrival unmistakable at
+  // globe scale. They are clearer than a detailed 3D airport model here.
+  addAirportMarker(viewer, {
+    longitude: startLon,
+    latitude: startLat,
+    code: 'LHR',
+    city: 'London Heathrow',
+    role: 'DEPARTURE',
+    color: Cesium.Color.fromCssColorString('#ff4d4d'),
   })
-  viewer.entities.add({
-    position: Cesium.Cartesian3.fromDegrees(endLon, endLat, 0),
-    point: { pixelSize: 8, color: Cesium.Color.WHITE, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-    label: { text: 'JFK', font: 'bold 12px sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineWidth: 2, outlineColor: Cesium.Color.BLACK, disableDepthTestDistance: Number.POSITIVE_INFINITY, pixelOffset: new Cesium.Cartesian2(0, 14) },
+  addAirportMarker(viewer, {
+    longitude: endLon,
+    latitude: endLat,
+    code: 'JFK',
+    city: 'New York JFK',
+    role: 'ARRIVAL',
+    color: Cesium.Color.fromCssColorString('#42e8ae'),
   })
 
   setOverviewCamera(viewer, 0)
+}
+
+function addAirportMarker(viewer, { longitude, latitude, code, city, role, color }) {
+  viewer.entities.add({
+    position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 0),
+    // A compact beacon is intentional: it remains visible at globe scale
+    // without looking like a separate map-pin application.
+    point: {
+      pixelSize: 8,
+      color,
+      outlineColor: Cesium.Color.WHITE,
+      outlineWidth: 2,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
+    label: {
+      text: code,
+      font: '700 10px system-ui',
+      fillColor: Cesium.Color.WHITE,
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      outlineColor: Cesium.Color.fromCssColorString('#07111d'),
+      outlineWidth: 3,
+      showBackground: true,
+      backgroundColor: color.withAlpha(0.72),
+      backgroundPadding: new Cesium.Cartesian2(4, 2),
+      horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+      pixelOffset: new Cesium.Cartesian2(0, -10),
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
+    ellipse: {
+      semiMajorAxis: 18000,
+      semiMinorAxis: 18000,
+      height: 15,
+      material: color.withAlpha(0.16),
+      outline: true,
+      outlineColor: color.withAlpha(0.8),
+      outlineWidth: 2,
+    },
+    description: `${code} — ${city} (${role.toLowerCase()})`,
+  })
 }
 
 function buildRouteHeatmap(viewer, positions, startTime, totalSeconds) {
@@ -461,7 +533,6 @@ function updateAircraftHover(viewer) {
   const t = Math.max(0, Math.min(1, Cesium.JulianDate.secondsDifference(viewer.clock.currentTime, viewer.clock.startTime) / state.totalDurationS))
   const intervalIndex = Math.min(state.intervals.length - 1, Math.floor(t * (state.intervals.length - 1)))
   const interval = state.intervals[intervalIndex]
-  const cartographic = Cesium.Cartographic.fromCartesian(position)
   const futureTime = Cesium.JulianDate.addSeconds(viewer.clock.currentTime, 30, new Cesium.JulianDate())
   const future = state.plane.position.getValue(futureTime)
 
@@ -473,7 +544,9 @@ function updateAircraftHover(viewer) {
   const compass = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(headingDegrees / 22.5) % 16]
   const remaining = Math.max(0, state.totalDurationS * (1 - t))
 
-  els.aircraftHoverAltitude.textContent = `${(cartographic.height / 1000).toFixed(1)} km`
+  // Match the primary Flight panel exactly: both are based on the saved
+  // interval telemetry, rather than the interpolated visual flight path.
+  els.aircraftHoverAltitude.textContent = fmtAltitudeFt(interval.altitudeFt)
   els.aircraftHoverSpeed.textContent = `${Math.round((interval.groundSpeedMps || 0) * 1.94384)} kt`
   els.aircraftHoverHeading.textContent = `${String(Math.round(headingDegrees)).padStart(3, '0')}° ${compass}`
   els.aircraftHoverEta.textContent = fmtTime(remaining)
@@ -607,8 +680,12 @@ function bindMiniMapDrag() {
 }
 
 function updateClock(viewer) {
-  viewer.clock.multiplier = SPEED_STEPS[state.speedIdx]
-  els.speedLabel.textContent = String(SPEED_STEPS[state.speedIdx])
+  const speed = SPEED_STEPS[state.speedIdx]
+  viewer.clock.multiplier = speed
+  els.speedLabel.textContent = String(speed)
+  els.timeScaleValue.textContent = `${speed}×`
+  els.demoDuration.textContent = fmtDemoTime(state.totalDurationS / speed)
+  els.hudDemoDuration.textContent = fmtDemoTime(state.totalDurationS / speed)
 }
 
 function bindControls(viewer) {
@@ -635,6 +712,7 @@ function bindControls(viewer) {
   document.getElementById('btnFocus').addEventListener('click', (event) => {
     toggleFocusMode(event.currentTarget)
   }, listenerOptions)
+  document.getElementById('btnGuide').addEventListener('click', () => setResearchOpen(true), listenerOptions)
   document.getElementById('btnTheme').addEventListener('click', (event) => {
     const light = document.body.classList.toggle('light-theme')
     event.currentTarget.classList.toggle('active', light)
@@ -833,6 +911,8 @@ function tick(viewer, clock) {
   els.progressBarFill.style.width = `${t * 100}%`
   els.timeline.value = String(Math.round(t * Number(els.timeline.max)))
   els.hudElapsed.textContent = fmtTime(elapsed)
+  els.demoElapsed.textContent = fmtDemoTime(elapsed / SPEED_STEPS[state.speedIdx])
+  els.hudAltitude.textContent = fmtAltitudeFt(iv.altitudeFt)
   els.hudFuelUsed.textContent = `${cumGt.toFixed(0)} kg`
   els.hudFuelRemaining.textContent = `${Math.max(0, state.totalFuelKg - cumGt).toFixed(0)} kg`
 
@@ -850,6 +930,7 @@ function tick(viewer, clock) {
 function updatePhaseIndicator(iv, progress) {
   const phase = getFlightPhase(iv, progress)
   document.querySelectorAll('[data-phase-step]').forEach((step) => step.classList.toggle('active', step.dataset.phaseStep === phase))
+  els.activePhase.textContent = phase.charAt(0).toUpperCase() + phase.slice(1)
 }
 
 function getFlightPhase(interval, progress) {
@@ -921,6 +1002,7 @@ function updatePredictionComparison(iv, idx, cumGt, cumPhys, cumR3) {
   els.predOpenapErr.textContent = `${physErr >= 0 ? '+' : ''}${physErr.toFixed(0)} kg`
   els.predR3Err.textContent = `${r3Err >= 0 ? '+' : ''}${r3Err.toFixed(0)} kg`
   els.predR3Rel.textContent = `${r3RelErr.toFixed(1)}%`
+  els.hudR3Error.textContent = `${r3Err >= 0 ? '+' : ''}${r3Err.toFixed(0)} kg`
   els.predImprovement.textContent = improvement >= 0
     ? `R3 lowers interval error by ${improvement.toFixed(0)}%`
     : `R3 interval error is ${Math.abs(improvement).toFixed(0)}% higher`
@@ -1313,7 +1395,7 @@ const setResearchOpen = (open) => {
   researchModal.classList.toggle('open', open)
   researchModal.setAttribute('aria-hidden', String(!open))
   if (open) document.getElementById('researchClose').focus()
-  else document.getElementById('researchBtn').focus()
+  else (state.running ? document.getElementById('btnGuide') : document.getElementById('researchBtn')).focus()
 }
 document.getElementById('researchBtn').addEventListener('click', () => setResearchOpen(true))
 document.getElementById('researchClose').addEventListener('click', () => setResearchOpen(false))
@@ -1334,7 +1416,21 @@ document.getElementById('backBtn').addEventListener('click', () => {
   }
   state.running = false
   // Show home overlay, hide sim UI.
-  document.getElementById('homeOverlay').classList.remove('hidden')
+  const home = document.getElementById('homeOverlay')
+  home.classList.remove('hidden')
+  // Returning focus can scroll the launch button back into view. Reset after
+  // the overlay is painted so Home always opens at the real page top.
+  const resetHomeScroll = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    home.scrollTop = 0
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    home.querySelector('.home-hero')?.scrollIntoView({ block: 'start' })
+  }
+  requestAnimationFrame(resetHomeScroll)
+  // The fade-in lasts 600ms; repeat after it so browser focus restoration
+  // cannot leave the first pipeline card clipped at the top of the viewport.
+  window.setTimeout(resetHomeScroll, 650)
   document.getElementById('simUI').classList.remove('ready')
 })
 
