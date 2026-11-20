@@ -8,6 +8,13 @@
 
 ---
 
+## Academic Context
+
+This project was developed at **Sai Vidya Institute of Technology** by the
+**CSE (AI&ML), 2026** program.
+
+---
+
 ## Overview
 
 **AeroFlux** predicts interval-level aircraft fuel burn from real-world, fused ADS-B and ACARS telemetry (EUROCONTROL PRC 2025 challenge data). It tests a **hybrid physics + machine-learning** approach:
