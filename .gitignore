@@ -225,6 +225,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.netlify/
 *.local
 
 # Editor directories and files
