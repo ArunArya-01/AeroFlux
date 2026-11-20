@@ -1,4 +1,4 @@
-# AeroTwin — Complete Experiment & Results Catalog
+# AeroFlux — Complete Experiment & Results Catalog
 
 **Last updated:** 2026-08-09  
 **Purpose:** Single reference of **every major experiment** and its **quantitative results**, including **pre-R3 work and negative results**.  
@@ -71,7 +71,7 @@ B15. [Artifact index](#b15-artifact-index)
 | Rank | Sep 2025 | 1,888 | 24,158 |
 | Final | Oct 2025 | 2,824 (after feature build) | **37,170** |
 
-**Published PRC winner (paper reference):** Combined RMSE ≈ **201 kg** (external; not AeroTwin).
+**Published PRC winner (paper reference):** Combined RMSE ≈ **201 kg** (external; not AeroFlux).
 
 ---
 

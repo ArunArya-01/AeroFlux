@@ -1,7 +1,7 @@
 """Dataset-agnostic helpers for external audit pipelines.
 
 Phase thresholds, energy-rate definitions, and sparsity signals mirror the
-PRC2025 / AeroTwin conventions used in ``physics/openap_baseline.py`` and
+PRC2025 / AeroFlux conventions used in ``physics/openap_baseline.py`` and
 ``physics/feature_engineering.py`` so external results stay comparable.
 """
 
@@ -26,7 +26,7 @@ DEFAULT_INTERVAL_S = 600.0  # 10-minute windows (PRC-like ACARS cadence)
 MIN_INTERVAL_S = 60.0
 EARTH_RADIUS_M = 6_371_000.0
 
-# Sparsity bins used elsewhere in AeroTwin diagnostics
+# Sparsity bins used elsewhere in AeroFlux diagnostics
 SPARSITY_BINS: list[tuple[str, int, int]] = [
     ("very_sparse", 0, 5),
     ("sparse", 5, 50),
@@ -510,7 +510,7 @@ def integrate_rate(
 
 
 def ensure_standard_traj_columns(df: pl.DataFrame) -> pl.DataFrame:
-    """Rename common external-source aliases to AeroTwin trajectory schema.
+    """Rename common external-source aliases to AeroFlux trajectory schema.
 
     Target columns: timestamp, altitude, groundspeed, vertical_rate,
     latitude, longitude, (optional) mach, CAS, typecode, source.

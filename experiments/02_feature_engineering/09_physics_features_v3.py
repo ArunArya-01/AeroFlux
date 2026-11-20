@@ -191,7 +191,7 @@ def plot_leaderboard(leaderboard: pl.DataFrame, path: Path) -> None:
     colors = ["#27ae60" if a != "OpenAP Hybrid" else "#2980b9" for a in top["approach"]]
     ax.barh(top["label"].to_list()[::-1], top["mae"].to_list()[::-1], color=colors[::-1], alpha=0.9)
     ax.set_xlabel("MAE (kg) — XGB on held-out flights")
-    ax.set_title("AeroTwin v3 Leaderboard (lower is better)")
+    ax.set_title("AeroFlux v3 Leaderboard (lower is better)")
     ax.axvline(
         float(leaderboard.filter(pl.col("approach") == "OpenAP Hybrid")["mae"][0]),
         color="#c0392b", ls="--", lw=1.5, label="OpenAP Hybrid baseline",
@@ -204,7 +204,7 @@ def plot_leaderboard(leaderboard: pl.DataFrame, path: Path) -> None:
 
 def main() -> None:
     print("=" * 70)
-    print("AeroTwin v3 — Weather, Combined Hybrid, MLP, Conditional E8")
+    print("AeroFlux v3 — Weather, Combined Hybrid, MLP, Conditional E8")
     print("=" * 70)
 
     df = ensure_v3(load_and_clean(PARQUET))

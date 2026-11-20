@@ -1,7 +1,7 @@
-# AeroTwin Project Status Report
+# AeroFlux Project Status Report
 
 **Date:** July–August 2026 (last update: **2026-08-09**)  
-**Repository:** ZeroPing (AeroTwin)  
+**Repository:** ZeroPing (AeroFlux)  
 **Dataset:** [`aerotwin/aero-data`](https://huggingface.co/datasets/aerotwin/aero-data) (EUROCONTROL PRC 2025)  
 **Current phase:** **Paper Writing**
 
@@ -11,7 +11,7 @@ This document is the **single source of truth** for project status after complet
 
 ## Executive Summary
 
-AeroTwin began as a **physics-informed machine learning system** for interval-level aircraft fuel-burn prediction on EUROCONTROL PRC trajectory data. A strong **ensemble teacher** (GBDT bases + Ridge meta-learner, R3 dynamic mass, phase calibration) was frozen for **knowledge distillation** into compact MLP students for deployment.
+AeroFlux began as a **physics-informed machine learning system** for interval-level aircraft fuel-burn prediction on EUROCONTROL PRC trajectory data. A strong **ensemble teacher** (GBDT bases + Ridge meta-learner, R3 dynamic mass, phase calibration) was frozen for **knowledge distillation** into compact MLP students for deployment.
 
 Under standard **Flight Holdout** and **Combined Rank+Final** evaluation, distillation succeeded: the **Large MLP** student (~2.89M parameters, α=0.1, β=0.9) reached Final RMSE **215.85 kg**, within ~2 kg of the teacher, at far lower latency.
 

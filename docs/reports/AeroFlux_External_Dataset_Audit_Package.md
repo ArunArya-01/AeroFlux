@@ -1,4 +1,4 @@
-# AeroTwin External Dataset Audit Package
+# AeroFlux External Dataset Audit Package
 **Date:** July 2026  
 **Purpose:** Structured compatibility audit for second dataset validation (DASHlink + OpenSky)   
 **Status:** Ready to execute
@@ -8,7 +8,7 @@
 ## 1. Executive Summary & Recommended Execution Order
 
 ### Goal
-Determine whether NASA DASHlink or OpenSky Network Historical Data can serve as a scientifically meaningful second dataset for testing the robustness of AeroTwin’s key findings:
+Determine whether NASA DASHlink or OpenSky Network Historical Data can serve as a scientifically meaningful second dataset for testing the robustness of AeroFlux’s key findings:
 - Energy-state features improve prediction
 - Fuel-Flow target vs Direct target behavior under distribution shift
 - Value of physics-informed hybrid correction
@@ -34,7 +34,7 @@ Use this framework for any candidate dataset.
 
 ### Core Evaluation Dimensions
 
-| Dimension | Key Questions | Success Criteria for AeroTwin |
+| Dimension | Key Questions | Success Criteria for AeroFlux |
 |-----------|---------------|-------------------------------|
 | **Fuel Target Construction** | Can we create interval-level fuel burn targets comparable to PRC ACARS FOB differences? | Yes or "reasonable approximation with documented limitations" |
 | **Aircraft Type Diversity** | Number of distinct types with ≥80–100 flights each | Ideally ≥6–8 types for meaningful LOTO-style analysis |

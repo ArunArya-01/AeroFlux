@@ -1,4 +1,4 @@
-"""OpenSky Network historical data loader for AeroTwin external audit.
+"""OpenSky Network historical data loader for AeroFlux external audit.
 
 Data access
 -----------
@@ -198,7 +198,7 @@ def clean_opensky_trajectory(
 
     Steps
     -----
-    1. Rename to AeroTwin columns (baro_altitude → altitude, etc.).
+    1. Rename to AeroFlux columns (baro_altitude → altitude, etc.).
     2. Drop null lat/lon/alt; filter altitude range.
     3. Sort by (icao24, timestamp); drop exact duplicate timestamps per aircraft.
     4. Optionally split on large time gaps (gap segments get segment_id).
@@ -386,7 +386,7 @@ def trajectory_to_intervals(
     """Fixed-width reporting intervals for a single trajectory.
 
     OpenSky has no native ACARS fuel windows; we use regular intervals so
-    feature construction matches the AeroTwin interval schema.
+    feature construction matches the AeroFlux interval schema.
     """
     if traj.is_empty() or "timestamp" not in traj.columns:
         return pl.DataFrame(
@@ -419,7 +419,7 @@ def generate_physics_fuel_labels(
     **LABEL SOURCE: physics_openap — NOT independent ground truth.**
 
     Sets ``actual_fuel_kg = physics_fuel_kg`` so the featured-dataset schema
-    remains compatible with the AeroTwin eval stack. Downstream audits MUST
+    remains compatible with the AeroFlux eval stack. Downstream audits MUST
     report ``label_source=physics_openap`` when interpreting metrics.
 
     Residual_kg will be ~0 by construction unless a separate actual is later

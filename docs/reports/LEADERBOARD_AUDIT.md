@@ -1,4 +1,4 @@
-# AeroTwin Internal Leaderboard Audit
+# AeroFlux Internal Leaderboard Audit
 
 **Date:** July 2026  
 **Question:** What is the true best **internal** model under the final strict flight-level protocol?  

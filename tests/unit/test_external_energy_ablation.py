@@ -1,6 +1,6 @@
 """Tests for the external Energy-feature ablation (physics/external_energy_ablation.py).
 
-The ablation runs the equivalent AeroTwin Energy-feature protocol (V3 E6) on an
+The ablation runs the equivalent AeroFlux Energy-feature protocol (V3 E6) on an
 independent dataset to verify whether energy-state representations improve
 prediction outside the original data.
 

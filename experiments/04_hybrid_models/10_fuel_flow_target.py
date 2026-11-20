@@ -108,7 +108,7 @@ def metrics_rows_direct_flow(all_res: dict) -> list[dict]:
 
 def main() -> None:
     print("=" * 70)
-    print("AeroTwin V4 — Fuel Flow Target + Flow Ablation (Tasks 2+5)")
+    print("AeroFlux V4 — Fuel Flow Target + Flow Ablation (Tasks 2+5)")
     print("=" * 70)
 
     df = load_and_clean(MASS_PARQUET)

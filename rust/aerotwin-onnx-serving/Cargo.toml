@@ -2,7 +2,7 @@
 name = "aerotwin-onnx-serving"
 version = "0.1.0"
 edition = "2021"
-description = "Universal, compiled inference host for AeroTwin ONNX models"
+description = "Universal, compiled inference host for AeroFlux ONNX models"
 license = "MIT"
 
 [dependencies]

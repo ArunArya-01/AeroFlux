@@ -1,4 +1,4 @@
-# VED Phenomena Replication on AeroTwin
+# VED Phenomena Replication on AeroFlux
 
 **Date:** 2026-07-25 (updated: matched CatBoost Residual LOTO)  
 **Scope:** Diagnosis + one matched residual LOTO re-run (no architecture search).  
@@ -78,7 +78,7 @@ Coarser holdout remains optional later for Phenomenon A (non-monotonic difficult
 
 ### Models with comparable results
 
-| Paradigm | AeroTwin equivalent | Level 1 | LOTO | Official Rank+Final |
+| Paradigm | AeroFlux equivalent | Level 1 | LOTO | Official Rank+Final |
 |----------|---------------------|:-------:|:----:|:-------------------:|
 | **Direct** | Predict `actual_fuel_kg` (hybrid + OpenAP feature) | ✅ | ✅ CatBoost E+W | ✅ XGB/LGBM/Cat + ensemble |
 | **Residual** | Predict `residual_kg` + add physics | ✅ (rejected; **matched CatBoost confirms**) | ✅ **matched CatBoost** (15b) | ❌ not official track |
@@ -184,7 +184,7 @@ Historical unmatched RF/XGB/LGBM residual (Level 1) also lost; matched re-run co
 - Hierarchical body routing looks “harder” than global LOTO, but that is a **training-recipe** comparison under the same type folds, not coarser entity holdout.
 
 **VED pattern:** coarser vehicle holdout harder (by RMSE) than finer LOEO.  
-**AeroTwin:** missing the coarser entity rung → **does not replicate / not testable**.
+**AeroFlux:** missing the coarser entity rung → **does not replicate / not testable**.
 
 ### Phenomenon B — Metric-dependent model ranking
 
@@ -196,7 +196,7 @@ Historical unmatched RF/XGB/LGBM residual (Level 1) also lost; matched re-run co
 | Direct vs **Rate/Flow** | **Sometimes** | A359 LOTO type; hierarchical body **macro** (Flow wins MAE, Direct wins RMSE) |
 | Within Rate or Ensemble vs Flow | **Yes** | Level-1 XGB vs LGBM Flow; official Ensemble (best RMSE) vs Flow singles (best MAE) |
 
-So AeroTwin shows **metric-dependent ranking** mainly for **Direct vs Rate** and architecture variants. **Matched Residual does not dominate RMSE** (opposite of VED).
+So AeroFlux shows **metric-dependent ranking** mainly for **Direct vs Rate** and architecture variants. **Matched Residual does not dominate RMSE** (opposite of VED).
 
 ### How strongly do the VED patterns replicate?
 

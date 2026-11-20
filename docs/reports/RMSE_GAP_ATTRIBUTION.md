@@ -44,7 +44,7 @@ Cruise dominates error. The R3 mass model nearly eliminated cruise bias on the L
 
 ## RMSE Opportunity
 
-The ~20 kg remaining gap to the winner (~201 kg) is attributed to mass estimation refinement, ultra-long-haul specialists, heavy-type loss functions, interpolation/resampling, and potential team-specific optimizations not accessible to AeroTwin.
+The ~20 kg remaining gap to the winner (~201 kg) is attributed to mass estimation refinement, ultra-long-haul specialists, heavy-type loss functions, interpolation/resampling, and potential team-specific optimizations not accessible to AeroFlux.
 
 ## Rejected Improvements
 

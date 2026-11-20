@@ -1,6 +1,6 @@
 # Browser Models
 
-Drop the exported AeroTwin model here to run the simulator on the real trained
+Drop the exported AeroFlux model here to run the simulator on the real trained
 student (ONNX Runtime Web). Expected files:
 
 ```

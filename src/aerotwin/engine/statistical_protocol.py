@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-"""Frozen statistical protocol for AeroTwin.
+"""Frozen statistical protocol for AeroFlux.
 
 This module is the **single source of truth** for the inference methodology used
-across every AeroTwin experiment (Level 1 flight-level, Level 2 LOTO, and
+across every AeroFlux experiment (Level 1 flight-level, Level 2 LOTO, and
 external / cross-dataset generalization). It exists so that the statistical
 protocol is *frozen* rather than re-tuned per notebook:
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the featured dataset from scratch using the AeroTwin pipeline."""
+"""Build the featured dataset from scratch using the AeroFlux pipeline."""
 
 import sys
 from pathlib import Path

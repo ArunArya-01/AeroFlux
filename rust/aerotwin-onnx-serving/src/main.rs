@@ -1,4 +1,4 @@
-//! Run AeroTwin ONNX models as a compiled, language-neutral inference service.
+//! Run AeroFlux ONNX models as a compiled, language-neutral inference service.
 //!
 //! The server loads an exported `*.onnx` (from `export_onnx.py`) plus its
 //! `*.preproc.json`, and exposes:
@@ -134,7 +134,7 @@ async fn main() -> Result<()> {
 
     let bind = std::env::var("AEROTWIN_BIND").unwrap_or_else(|_| "127.0.0.1:8080".into());
     let listener = tokio::net::TcpListener::bind(&bind).await?;
-    tracing::info!("AeroTwin ONNX server listening on http://{bind}");
+    tracing::info!("AeroFlux ONNX server listening on http://{bind}");
     axum::serve(listener, app).await?;
     Ok(())
 }

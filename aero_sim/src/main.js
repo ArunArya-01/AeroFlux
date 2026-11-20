@@ -1,4 +1,4 @@
-// AeroSim — AeroTwin model-validation simulator.
+// AeroSim — AeroFlux model-validation simulator.
 //
 // Primary mode: loads a real PRC test flight with ground-truth fuel,
 // OpenAP physics baseline, and R3 model predictions. Shows the achievement:

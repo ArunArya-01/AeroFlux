@@ -2,7 +2,7 @@
 
 Interactive 3D replay of an A320-family flight from London Heathrow (LHR) to
 New York JFK (JFK). It visualizes saved fuel-burn labels, a Physics baseline,
-and AeroTwin R3 predictions on a Cesium globe.
+and AeroFlux R3 predictions on a Cesium globe.
 
 The frontend is built with **CesiumJS** and **Vite**. The current replay is a
 bundled demo dataset; no backend API is required to run the interface.
@@ -25,7 +25,7 @@ npm run build
 The UI deliberately distinguishes between four kinds of information:
 
 - **Saved replay data** — per-interval measured fuel labels, Physics baseline
-  estimates, AeroTwin R3 predictions, and available flight telemetry. These
+  estimates, AeroFlux R3 predictions, and available flight telemetry. These
   are loaded from `public/models/demo_flight.json` through `src/data/routes.js`.
 - **Frontend-derived values** — cumulative fuel, mass, wing loading, phase
   timing, chart summaries, and report statistics calculated in the browser.

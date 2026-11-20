@@ -1,6 +1,6 @@
-# AeroTwin External Dataset Audit
+# AeroFlux External Dataset Audit
 
-Pilot-scale infrastructure for validating AeroTwin findings on **NASA DASHlink** and **OpenSky Network** data, as specified in `AeroTwin_External_Dataset_Audit_Package.md`.
+Pilot-scale infrastructure for validating AeroFlux findings on **NASA DASHlink** and **OpenSky Network** data, as specified in `AeroFlux_External_Dataset_Audit_Package.md`.
 
 ## Module layout
 

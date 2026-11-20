@@ -1,6 +1,6 @@
 """Tests for the external generalization protocol (physics/external_vs_flow_eval.py).
 
-The external generalization check runs the equivalent AeroTwin Flow-vs-Direct
+The external generalization check runs the equivalent AeroFlux Flow-vs-Direct
 protocol on an independent dataset to verify that Flow+Energy still beats the
 Direct approach outside the original data.
 

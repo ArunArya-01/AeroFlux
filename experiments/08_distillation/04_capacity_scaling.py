@@ -639,7 +639,7 @@ def write_report(
     lines = [
         "# MLP Capacity Scaling Report",
         "",
-        "**Stage:** AeroTwin Distillation - Step 4",
+        "**Stage:** AeroFlux Distillation - Step 4",
         "",
         "Fixed KD supervision: **alpha=0.1, beta=0.9** (from Step 3).",
         "Teacher, dataset, split protocol, and training loop are unchanged.",

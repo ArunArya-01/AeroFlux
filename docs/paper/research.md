@@ -1,6 +1,6 @@
-# AeroTwin Research Paper — Complete Writing Package
+# AeroFlux Research Paper — Complete Writing Package
 
-**Project:** ZeroPing / AeroTwin  
+**Project:** ZeroPing / AeroFlux  
 **Working title:** *Physics-Informed Hybrid Modeling for Aircraft Fuel Burn Prediction under Partial Observability*  
 **Dataset:** EUROCONTROL PRC 2025 (`aerotwin/aero-data`)  
 **Last synced with repo:** 2026-07-27  
@@ -33,7 +33,7 @@ This file is the **single source of content** for writing the research paper: pr
 
 ## 1. Abstract (draft — rewrite for venue length)
 
-Accurate estimation of commercial aircraft fuel burn from operational telemetry is central to emissions accounting, operational efficiency, and digital-twin analytics. Real-world data fuse dense ADS-B kinematics with sparse ACARS fuel-on-board reports, yielding partial observability, unknown aircraft mass, and highly variable trajectory density. We present **AeroTwin**, a hybrid physics–machine-learning system that combines an OpenAP fuel-flow baseline with gradient-boosted models trained on interval-level trajectory, energy-state, and atmospheric-proxy features.
+Accurate estimation of commercial aircraft fuel burn from operational telemetry is central to emissions accounting, operational efficiency, and digital-twin analytics. Real-world data fuse dense ADS-B kinematics with sparse ACARS fuel-on-board reports, yielding partial observability, unknown aircraft mass, and highly variable trajectory density. We present **AeroFlux**, a hybrid physics–machine-learning system that combines an OpenAP fuel-flow baseline with gradient-boosted models trained on interval-level trajectory, energy-state, and atmospheric-proxy features.
 
 On the EUROCONTROL PRC 2025 challenge data (~10,000 training flights; 119,032 fuel intervals), pure OpenAP is unusable (flight-holdout MAE ≈ 668 kg, R² ≈ −2.16). Direct hybrid tree ensembles reach MAE ≈ 84–88 kg on strict flight-level holdout. **Energy-state features** yield bootstrap-supported gains (ΔMAE ≈ −1.8 to −2.6 kg); residual-learning architectures and sparsity-conditioned physics gains are **rejected**. Under the **official Rank+Final** protocol (train-only fits), a six-base ensemble achieves combined RMSE **228.25 kg**; gap-closing with phase-conditional calibration, heavy-aircraft specialists, and **dynamic mass features** reaches **221.33 kg**, remaining ≈20 kg above the published winner (≈201 kg). Leave-one-type-out evaluation inflates error ~3×, showing that standard flight splits overestimate robustness under aircraft-family shift. Pilot external validation on NASA DASHlink replicates energy and fuel-flow benefits at small scale. We release loaders, featured-dataset builders, a frozen statistical protocol, and full experiment artifacts for reproducibility.
 
@@ -107,7 +107,7 @@ where:
 | **Physics-only** (OpenAP, BADA, …) | Interpretable, type-aware fuel flow | Degrades under wrong mass, missing air-data, real operational conditions; alone MAE ~668 kg here |
 | **Pure ML** | Flexible on large data | Often assumes rich sensors or simulation; ignores energy / phase structure; weak physics consistency |
 
-### 4.2 Specific gap AeroTwin fills
+### 4.2 Specific gap AeroFlux fills
 
 Limited prior work that **jointly**:
 
@@ -523,7 +523,7 @@ Use these **canonical paper figure IDs** in the manuscript. Map each to an exist
 
 | Paper ID | Suggested filename | Caption focus | Source / generate from |
 |----------|-------------------|---------------|------------------------|
-| **Fig. 1** | `fig_system_architecture.png` | End-to-end AeroTwin pipeline: data → OpenAP → features → models → eval levels | Draw from README architecture; **may need new diagram** |
+| **Fig. 1** | `fig_system_architecture.png` | End-to-end AeroFlux pipeline: data → OpenAP → features → models → eval levels | Draw from README architecture; **may need new diagram** |
 | **Fig. 2** | `fig_dataset_distribution.png` | Split counts, aircraft mix, route/duration overview | **Exists:** `figures/fig_dataset_distribution.png` |
 | **Fig. 3** | `fig_ac_types.png` | Aircraft type distribution (usable train) | **Exists:** `figures/fig_ac_types.png` |
 | **Fig. 4** | `fig_fuel_intervals_and_total.png` | Interval fuel distribution + total fuel per flight | **Exists:** `figures/fig_fuel_intervals_and_total.png` |

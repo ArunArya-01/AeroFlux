@@ -1,6 +1,6 @@
 # Teacher Distillation Dataset Report
 
-**Stage:** AeroTwin Distillation - Step 1 (export only)
+**Stage:** AeroFlux Distillation - Step 1 (export only)
 
 **Teacher (frozen):** R3 dynamic mass (21 features) + 6-base GBDT ensemble + Ridge/LGBM meta + P1E phase-conditional affine
 
@@ -101,6 +101,6 @@ duration_s, start_fraction_of_flight, end_fraction_of_flight, n_traj_pts, has_ac
 
 - Train any neural student
 - Implement distillation loss
-- Change AeroTwin feature engineering or hyperparameters
+- Change AeroFlux feature engineering or hyperparameters
 
 *Generated 2026-07-29 19:26:02*

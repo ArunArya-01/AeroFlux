@@ -149,9 +149,9 @@ def _write_report(
     lines = [
         "# MLP Student Distillation Report",
         "",
-        "**Stage:** AeroTwin Distillation - Step 2 (baseline MLP student)",
+        "**Stage:** AeroFlux Distillation - Step 2 (baseline MLP student)",
         "",
-        "Question: *Can a small neural network absorb the knowledge of the frozen AeroTwin R3 ensemble?*",
+        "Question: *Can a small neural network absorb the knowledge of the frozen AeroFlux R3 ensemble?*",
         "",
         "The teacher distillation dataset is **frozen** and was not regenerated.",
         "",

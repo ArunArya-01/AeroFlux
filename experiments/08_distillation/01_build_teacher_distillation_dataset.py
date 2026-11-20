@@ -390,7 +390,7 @@ def _write_report(
     lines = [
         "# Teacher Distillation Dataset Report",
         "",
-        "**Stage:** AeroTwin Distillation - Step 1 (export only)",
+        "**Stage:** AeroFlux Distillation - Step 1 (export only)",
         "",
         "**Teacher (frozen):** R3 dynamic mass (21 features) + 6-base GBDT ensemble "
         "+ Ridge/LGBM meta + P1E phase-conditional affine",
@@ -478,7 +478,7 @@ def _write_report(
         "",
         "- Train any neural student",
         "- Implement distillation loss",
-        "- Change AeroTwin feature engineering or hyperparameters",
+        "- Change AeroFlux feature engineering or hyperparameters",
         "",
         f"*Generated {time.strftime('%Y-%m-%d %H:%M:%S')}*",
         "",

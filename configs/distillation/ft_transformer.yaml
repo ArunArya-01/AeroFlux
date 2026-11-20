@@ -1,4 +1,4 @@
-# AeroTwin distillation — FT-Transformer student (Phase 2)
+# AeroFlux distillation — FT-Transformer student (Phase 2)
 # Training knobs match the Large MLP KD setup unless noted.
 # Architecture is the only intentional experimental variable.
 

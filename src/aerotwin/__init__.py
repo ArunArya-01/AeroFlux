@@ -1,4 +1,4 @@
-"""AeroTwin — Physics-informed aircraft fuel-burn prediction."""
+"""AeroFlux — Physics-informed aircraft fuel-burn prediction."""
 
 from importlib.metadata import version
 

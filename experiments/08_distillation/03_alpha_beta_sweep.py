@@ -55,7 +55,7 @@ def _write_report(
     lines = [
         "# Distillation α/β Weight Sweep Report",
         "",
-        "**Stage:** AeroTwin Distillation - Step 3",
+        "**Stage:** AeroFlux Distillation - Step 3",
         "",
         "Goal: determine how knowledge should be transferred from the frozen R3 "
         "teacher to neural students by varying only the KD weights "

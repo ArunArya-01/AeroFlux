@@ -5,12 +5,12 @@ fleet, tails ~652–687). Fuel targets are reconstructed from fuel-flow or
 fuel-used parameters when present; the reconstruction path is logged because
 integrated flow labels are noisier than PRC ACARS FOB differences.
 
-Output trajectory schema is aligned with AeroTwin / ``predict_fuel_intervals``:
+Output trajectory schema is aligned with AeroFlux / ``predict_fuel_intervals``:
 timestamp, altitude, groundspeed, vertical_rate, latitude, longitude, typecode.
 
 References
 ----------
-* AeroTwin External Dataset Audit Package (July 2026)
+* AeroFlux External Dataset Audit Package (July 2026)
 * DASHlink Project 85 – Sample Flight Data
 """
 
@@ -605,7 +605,7 @@ def channels_to_trajectory(
     sample_hz: float | None = None,
     epoch: datetime | None = None,
 ) -> pl.DataFrame:
-    """Map a flat channel dict to a standard AeroTwin trajectory DataFrame.
+    """Map a flat channel dict to a standard AeroFlux trajectory DataFrame.
 
     Project 85 channels are recorded at different rates (e.g. ALT/GS @ 4 Hz,
     IVV @ 16 Hz, LATP @ 1 Hz). We pick a reference channel (prefer ALT), then

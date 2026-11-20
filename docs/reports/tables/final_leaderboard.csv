@@ -11,5 +11,5 @@ C_stack_direct,LGBM_meta 5f OOF,direct_kg,84.3,202.9,0.9481,Best Direct ensemble
 C_stack_direct,Ridge 5f OOF,direct_kg,84.5,203.4,0.9479,,table_ensemble_final.csv
 C_stack_direct,Optuna CatBoost,direct_kg,84.9,204.6,0.9473,,final_leaderboard legacy
 C_stack_direct,Aircraft Experts,direct_kg,85.8,206.8,0.9462,,final_leaderboard legacy
-C_stack_direct,PRC Challenge Winner (ref),unknown,,200.83,,Competition reference only — not AeroTwin,PRC official
+C_stack_direct,PRC Challenge Winner (ref),unknown,,200.83,,Competition reference only — not AeroFlux,PRC official
 NOTE,DO NOT RANK A vs C AS ONE LIST,,,,,"Flow single-model RMSE 196.4 and Direct stack RMSE 202.9 are NOT directly comparable (different targets/training). See LEADERBOARD_AUDIT.md",

@@ -219,7 +219,7 @@ def run_mass_ablation(pdf, train_idx, test_idx, y_train, y_test, physics_test, t
 
 def main() -> None:
     print("=" * 70)
-    print("AeroTwin V4 — Heuristic Mass Features + Mass Ablation")
+    print("AeroFlux V4 — Heuristic Mass Features + Mass Ablation")
     print("=" * 70)
 
     # 1. Build / ensure mass-augmented dataset (full, with E/W too for convenience)

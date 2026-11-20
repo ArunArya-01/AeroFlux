@@ -28,7 +28,7 @@ from aerotwin.validation.external_vs_flow_eval import (  # noqa: E402
 )
 
 # Categorical features mirror notebooks/15 (the source protocol) so the external
-# run is directly comparable to the internal AeroTwin result.
+# run is directly comparable to the internal AeroFlux result.
 CAT_FEATURES = CATEGORICAL + ["phase"]
 
 RANDOM_STATE = 42

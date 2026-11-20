@@ -1,4 +1,4 @@
-"""Official PRC2025 benchmark utilities (frozen AeroTwin methodology).
+"""Official PRC2025 benchmark utilities (frozen AeroFlux methodology).
 
 This module supports the one-shot official evaluation on Rank/Final after
 labels were released. It intentionally:

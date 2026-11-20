@@ -1,8 +1,8 @@
-# Official PRC2025 Benchmark Report — AeroTwin
+# Official PRC2025 Benchmark Report — AeroFlux
 
 **Status:** COMPLETE (full Rank + Final evaluation)  
 **Date:** July 2026  
-**Methodology:** **Frozen** AeroTwin V4 — no tuning after seeing Rank/Final labels  
+**Methodology:** **Frozen** AeroFlux V4 — no tuning after seeing Rank/Final labels  
 
 **Paper:** Sun, Spinielli & Strohmeier, *Aircraft Fuel Burn Estimation: The EUROCONTROL PRC 2025 Data Challenge*, Journal of Open Aviation Science (2026). doi:10.59490/joas.2026.8750
 
@@ -10,7 +10,7 @@
 
 ## Canonical statement
 
-> **Under the released official PRC2025 benchmark protocol, AeroTwin achieved:**
+> **Under the released official PRC2025 benchmark protocol, AeroFlux achieved:**
 >
 > | Split | MAE (kg) | RMSE (kg) | R² |
 > |-------|--------:|----------:|---:|
@@ -21,10 +21,10 @@
 > **Best model:** Ensemble (6 bases: XGB/LGBM/CatBoost × Direct + Fuel-Flow, Energy+Weather features) + **Ridge** meta learner selected on train OOF only.  
 >
 > **Published winner (combined RMSE):** ≈ **201 kg** (paper).  
-> **ΔRMSE (AeroTwin − winner):** **+27.25 kg** (AeroTwin higher error).  
+> **ΔRMSE (AeroFlux − winner):** **+27.25 kg** (AeroFlux higher error).  
 > **Combined RMSE 95% CI (flight bootstrap):** **[207.1, 249.4] kg** — does **not** exclude 201; we do **not** claim superiority.
 >
-> Training used **only** the train split. Rank/Final were never used for feature engineering, hyperparameter search, or model selection. This is the **canonical AeroTwin official benchmark** for the paper.
+> Training used **only** the train split. Rank/Final were never used for feature engineering, hyperparameter search, or model selection. This is the **canonical AeroFlux official benchmark** for the paper.
 
 ---
 
@@ -50,7 +50,7 @@ Flightlist and fuel schemas are **identical** across train / rank / final. Traje
 
 ## 2. Protocol verification
 
-| Item | Official (paper) | AeroTwin implementation |
+| Item | Official (paper) | AeroFlux implementation |
 |------|------------------|-------------------------|
 | Task | Predict interval fuel (kg) | Same |
 | Metric | **RMSE (kg)** | RMSE primary; also MAE, R² |
@@ -132,17 +132,17 @@ Meta learner (Ridge vs LGBM) chosen by **GroupKFold CV on train OOF only** — R
 |----------|------:|
 | Published winner combined RMSE (paper) | **≈ 201 kg** |
 | Legacy internal citation | 200.83 kg |
-| Best AeroTwin combined RMSE | **228.25 kg** |
-| ΔRMSE (AeroTwin − winner) | **+27.25 kg** |
+| Best AeroFlux combined RMSE | **228.25 kg** |
+| ΔRMSE (AeroFlux − winner) | **+27.25 kg** |
 | Combined RMSE 95% CI | [207.1, 249.4] |
 
 ### Fairness
 
 - Same task, same public Rank/Final labels, same primary metric (RMSE kg).
 - Winner’s exact pipeline is unpublished → comparison is to the **published score**, not a re-run of winning code.
-- AeroTwin CI **includes values above 201** and point estimate is **worse** than 201 → **no claim of superiority**.
+- AeroFlux CI **includes values above 201** and point estimate is **worse** than 201 → **no claim of superiority**.
 
-**Honest conclusion:** Frozen AeroTwin is **competitive with strong open hybrid pipelines** but **does not match the published winner** under the official combined RMSE (~228 vs ~201).
+**Honest conclusion:** Frozen AeroFlux is **competitive with strong open hybrid pipelines** but **does not match the published winner** under the official combined RMSE (~228 vs ~201).
 
 ---
 
@@ -171,9 +171,9 @@ Meta learner (Ridge vs LGBM) chosen by **GroupKFold CV on train OOF only** — R
 
 Under the released official PRC2025 protocol, with methodology frozen before Rank/Final labels:
 
-- **Best AeroTwin:** Ensemble (Direct + Fuel-Flow Energy+Weather bases, Ridge meta).  
+- **Best AeroFlux:** Ensemble (Direct + Fuel-Flow Energy+Weather bases, Ridge meta).  
 - **Rank RMSE 239.2 kg · Final RMSE 220.9 kg · Combined RMSE 228.3 kg.**  
-- **Published winner ~201 kg combined** → AeroTwin is **~27 kg RMSE worse** on this run.  
+- **Published winner ~201 kg combined** → AeroFlux is **~27 kg RMSE worse** on this run.  
 - **Fuel-Flow** dominates Direct; OpenAP alone fails.  
 - This evaluation is **reproducible**, **train-only**, and **leakage-free**.
 
@@ -195,7 +195,7 @@ python notebooks/17_official_prc_evaluation.py --skip-build
 | `figures/table_official_leaderboard.csv` | Full official leaderboard |
 | `figures/table_prc_comparison.csv` | Winner comparison + CIs |
 | `figures/fig_official_leaderboard.png` | Rank vs Final RMSE bars |
-| `figures/fig_prc_vs_aerotwin.png` | Winner vs AeroTwin |
+| `figures/fig_prc_vs_aerotwin.png` | Winner vs AeroFlux |
 | `figures/official_eval_summary.json` | Machine-readable summary |
 | `featured_dataset_rank.parquet` / `_final.parquet` | Official eval features |
 

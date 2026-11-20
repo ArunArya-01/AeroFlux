@@ -191,7 +191,7 @@ def experiment_block(
 
 def main() -> None:
     print("=" * 70)
-    print("AeroTwin v2 — Physics-Informed Feature Experiments")
+    print("AeroFlux v2 — Physics-Informed Feature Experiments")
     print("=" * 70)
 
     df = load_and_clean(PARQUET)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Unified entry point for AeroTwin distillation student experiments.
+"""Unified entry point for AeroFlux distillation student experiments.
 
 Examples
 --------
@@ -43,7 +43,7 @@ def _load_and_run(script_name: str, rest: list[str]) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
-        description="AeroTwin distillation experiment runner",
+        description="AeroFlux distillation experiment runner",
     )
     parser.add_argument(
         "command",

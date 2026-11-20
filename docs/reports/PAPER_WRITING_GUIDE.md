@@ -1,4 +1,4 @@
-# AeroTwin — Paper Writing Guide
+# AeroFlux — Paper Writing Guide
 
 **Purpose:** Master planning document for writing the research paper after all experiments are complete.  
 **Status:** Experimentation closed · Method development closed · Mechanism investigation closed  
@@ -11,7 +11,7 @@
 
 # Project Summary
 
-AeroTwin is a physics-informed tabular learning system for aircraft fuel-burn prediction on EUROCONTROL PRC trajectory intervals. A frozen GBDT ensemble teacher is distilled into compact neural students for deployment. Under standard Flight Holdout and Combined evaluation, a Large MLP student nearly matches the teacher. Under aircraft-type (type-macro) evaluation, rankings reverse: an FT-Transformer student is more robust than the MLP despite worse IID accuracy. Systematic investigation rules out teacher-uncertainty adaptive KD, physics-feature reliance, and local smoothness as primary explanations of this architecture-dependent robustness gap, while documenting genuine representation differences that remain insufficient as a full causal account. The paper is an empirical study of evaluation protocols, negative mechanism results, and open questions—not a new algorithm paper.
+AeroFlux is a physics-informed tabular learning system for aircraft fuel-burn prediction on EUROCONTROL PRC trajectory intervals. A frozen GBDT ensemble teacher is distilled into compact neural students for deployment. Under standard Flight Holdout and Combined evaluation, a Large MLP student nearly matches the teacher. Under aircraft-type (type-macro) evaluation, rankings reverse: an FT-Transformer student is more robust than the MLP despite worse IID accuracy. Systematic investigation rules out teacher-uncertainty adaptive KD, physics-feature reliance, and local smoothness as primary explanations of this architecture-dependent robustness gap, while documenting genuine representation differences that remain insufficient as a full causal account. The paper is an empirical study of evaluation protocols, negative mechanism results, and open questions—not a new algorithm paper.
 
 ---
 

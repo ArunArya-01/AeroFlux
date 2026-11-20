@@ -611,7 +611,7 @@ def plot_kd_sweep(
         ax.set_ylabel(ylabel)
         ax.set_title(title)
         ax.set_xticks(alphas)
-    fig.suptitle("AeroTwin distillation: α/β weight sweep (baseline MLP)", fontsize=13, y=1.01)
+    fig.suptitle("AeroFlux distillation: α/β weight sweep (baseline MLP)", fontsize=13, y=1.01)
     fig.tight_layout()
     p5 = plots_dir / "alpha_beta_sweep_panel.png"
     fig.savefig(p5, bbox_inches="tight")

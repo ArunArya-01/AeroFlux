@@ -1,11 +1,11 @@
-"""Official PRC2025 Rank/Final evaluation — frozen AeroTwin methodology.
+"""Official PRC2025 Rank/Final evaluation — frozen AeroFlux methodology.
 
 CRITICAL SCIENTIFIC CONSTRAINTS
 --------------------------------
 * Train ONLY on the train split (or train-derived featured_dataset.parquet).
 * Do NOT tune hyperparameters after seeing Rank/Final scores.
 * Do NOT add/remove features relative to frozen V4 Energy+Weather pipeline.
-* First complete run is the canonical official AeroTwin benchmark result.
+* First complete run is the canonical official AeroFlux benchmark result.
 
 Official paper (Sun et al., JOAS 2026):
 * Metric: RMSE in kilograms on fuel intervals
@@ -111,7 +111,7 @@ def run_eval(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
 
 
 def main(argv: list[str] | None = None) -> None:
-    p = argparse.ArgumentParser(description="Official PRC2025 evaluation (frozen AeroTwin)")
+    p = argparse.ArgumentParser(description="Official PRC2025 evaluation (frozen AeroFlux)")
     p.add_argument(
         "--max-flights",
         type=int,
@@ -276,7 +276,7 @@ def main(argv: list[str] | None = None) -> None:
     leaderboard.write_csv(OUT / "table_official_leaderboard.csv")
     LOGGER.info("Official leaderboard:\n%s", leaderboard)
 
-    # Best AeroTwin by combined RMSE
+    # Best AeroFlux by combined RMSE
     best = leaderboard.row(0, named=True)
     best_name = best["Model"]
 
@@ -331,12 +331,12 @@ def main(argv: list[str] | None = None) -> None:
             {
                 "Published_Winner_RMSE_combined_paper": OFFICIAL_WINNER_RMSE_COMBINED,
                 "Published_Winner_RMSE_legacy_cite": LEGACY_WINNER_RMSE,
-                "Best_AeroTwin_Model": best_name,
-                "AeroTwin_Rank_RMSE": best["Rank_RMSE"],
-                "AeroTwin_Final_RMSE": best["Final_RMSE"],
-                "AeroTwin_Combined_RMSE": comb_metrics["rmse"],
-                "AeroTwin_Combined_MAE": comb_metrics["mae"],
-                "AeroTwin_Combined_R2": comb_metrics["r2"],
+                "Best_AeroFlux_Model": best_name,
+                "AeroFlux_Rank_RMSE": best["Rank_RMSE"],
+                "AeroFlux_Final_RMSE": best["Final_RMSE"],
+                "AeroFlux_Combined_RMSE": comb_metrics["rmse"],
+                "AeroFlux_Combined_MAE": comb_metrics["mae"],
+                "AeroFlux_Combined_R2": comb_metrics["r2"],
                 "Final_RMSE_CI95_lo": ci_rmse["ci_lower"],
                 "Final_RMSE_CI95_hi": ci_rmse["ci_upper"],
                 "Final_MAE_CI95_lo": ci_mae["ci_lower"],
@@ -351,7 +351,7 @@ def main(argv: list[str] | None = None) -> None:
                 "Limitation": (
                     "Winner score ~201 kg from JOAS paper combined Rank+Final; "
                     "exact winner pipeline unpublished. Comparison is RMSE on same "
-                    "public labels under frozen AeroTwin features/models."
+                    "public labels under frozen AeroFlux features/models."
                 ),
             }
         ]
@@ -384,14 +384,14 @@ def main(argv: list[str] | None = None) -> None:
     ax.set_xticks(x)
     ax.set_xticklabels(plot_df["Model"], rotation=25, ha="right", fontsize=8)
     ax.set_ylabel("RMSE [kg]")
-    ax.set_title("Official PRC2025 AeroTwin Leaderboard (Rank vs Final)")
+    ax.set_title("Official PRC2025 AeroFlux Leaderboard (Rank vs Final)")
     ax.legend()
     fig.tight_layout()
     fig.savefig(OUT / "fig_official_leaderboard.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    labels = ["PRC Winner\n(combined, paper)", "AeroTwin best\n(combined)"]
+    labels = ["PRC Winner\n(combined, paper)", "AeroFlux best\n(combined)"]
     vals = [OFFICIAL_WINNER_RMSE_COMBINED, comb_metrics["rmse"]]
     colors = ["#555555", "#2F7D4F" if comb_metrics["rmse"] < OFFICIAL_WINNER_RMSE_COMBINED else "#A33"]
     bars = ax.bar(labels, vals, color=colors, edgecolor="white")
@@ -409,7 +409,7 @@ def main(argv: list[str] | None = None) -> None:
     for b, v in zip(bars, vals):
         ax.text(b.get_x() + b.get_width() / 2, v + 3, f"{v:.1f}", ha="center", fontsize=11)
     ax.set_ylabel("RMSE [kg]")
-    ax.set_title("PRC Winner vs Frozen AeroTwin (Combined Rank+Final)")
+    ax.set_title("PRC Winner vs Frozen AeroFlux (Combined Rank+Final)")
     ax.set_ylim(0, max(vals) * 1.25)
     fig.tight_layout()
     fig.savefig(OUT / "fig_prc_vs_aerotwin.png", dpi=200, bbox_inches="tight")
@@ -442,7 +442,7 @@ def main(argv: list[str] | None = None) -> None:
     LOGGER.info("SUMMARY: %s", json.dumps(summary, indent=2))
     print("\n=== CANONICAL RESULT ===")
     print(
-        f"Under the released official PRC2025 benchmark protocol, AeroTwin ({best_name}) achieved "
+        f"Under the released official PRC2025 benchmark protocol, AeroFlux ({best_name}) achieved "
         f"Rank RMSE={best['Rank_RMSE']:.2f} kg, Final RMSE={best['Final_RMSE']:.2f} kg, "
         f"Combined RMSE={comb_metrics['rmse']:.2f} kg "
         f"(paper winner combined ≈ {OFFICIAL_WINNER_RMSE_COMBINED:.0f} kg; "

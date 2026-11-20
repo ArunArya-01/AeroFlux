@@ -22,12 +22,12 @@ from aerotwin.engine.feature_engineering import ENERGY_FEATURES  # noqa: E402
 from aerotwin.engine.weather_features import WEATHER_FEATURES  # noqa: E402
 
 # Categorical features mirror notebooks/15 (the source protocol) so the
-# external run is directly comparable to the internal AeroTwin result.
+# external run is directly comparable to the internal AeroFlux result.
 CAT_FEATURES = CATEGORICAL + ["phase"]
 
 RANDOM_STATE = 42
 
-# Feature groupings copied verbatim from the AeroTwin Flow-vs-Direct protocol
+# Feature groupings copied verbatim from the AeroFlux Flow-vs-Direct protocol
 # (notebooks/15_leave_one_type_out.py). Keeping them identical is what makes
 # the external run "equivalent" to the internal one.
 EW_FEATURES = list(BASE_NUMERIC) + list(ENERGY_FEATURES) + list(WEATHER_FEATURES) + ["physics_fuel_kg"] + list(CATEGORICAL)
@@ -200,7 +200,7 @@ def external_results_table(result: dict) -> pl.DataFrame:
 
 
 def load_internal_baseline(path: Path) -> pl.DataFrame | None:
-    """Load the current AeroTwin results for contrast.
+    """Load the current AeroFlux results for contrast.
 
     Accepts the LOTO evaluation master table (``table_loto_evaluation_master.csv``)
     which already reports Direct/Energy vs Flow/Energy at the internal protocol.
@@ -275,7 +275,7 @@ def plot_external_vs_flow(
         if "internal_mae_kg" in pdf.columns and pdf["internal_mae_kg"].notna().any():
             x = np.arange(len(labels))
             internal = pdf.set_index("approach").loc[keys, "internal_mae_kg"].to_numpy()
-            ax.scatter(x, internal, color="black", marker="D", zorder=5, label="Internal (AeroTwin)")
+            ax.scatter(x, internal, color="black", marker="D", zorder=5, label="Internal (AeroFlux)")
             ax.legend(fontsize=8)
 
     fig.tight_layout()
@@ -294,7 +294,7 @@ def main(
     outdir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 72)
-    print("EXTERNAL vs FLOW — generalization check of AeroTwin methodology")
+    print("EXTERNAL vs FLOW — generalization check of AeroFlux methodology")
     print("=" * 72)
     print(f"External dataset: {external_path}")
 

@@ -180,7 +180,7 @@ See `rust/aerotwin-onnx-serving/README.md` for full build/run details.
 **`aero_sim/`** is a browser-based 3D flight simulation demo built with CesiumJS,
 Three.js, and ONNX Runtime Web. It animates an aircraft flying between two
 airports along a real route while predicting per-segment fuel burn from the
-trained AeroTwin model in the browser. CesiumJS renders the globe, route, and
+trained AeroFlux model in the browser. CesiumJS renders the globe, route, and
 an auto-following aircraft; per-segment markers are color-coded by predicted
 burn (green → red) with fuel-kg labels; and a Three.js fuel-tank overlay
 animates remaining fuel as the flight progresses. A live HUD shows progress,

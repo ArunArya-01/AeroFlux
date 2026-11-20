@@ -1,4 +1,4 @@
-"""Pluggable student architectures for AeroTwin distillation.
+"""Pluggable student architectures for AeroFlux distillation.
 
 Use :func:`build_student` to construct models by name. The training loop
 (:mod:`aerotwin.distillation.trainer`) stays architecture-agnostic.

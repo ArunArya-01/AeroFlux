@@ -1806,8 +1806,8 @@
         <div class="pred-section-label benchmark">Baseline Prediction</div>
         <div class="pred-row"><span class="pred-label">OpenAP Physics <button class="help-tip" data-tip="A physics-based baseline estimate used for comparison." aria-label="About OpenAP Physics">i</button></span><span class="pred-val" id="predOpenap">&mdash;</span></div>
 
-        <div class="pred-section-label model">AeroTwin R3</div>
-        <div class="pred-row highlight"><span class="pred-label">R3 Prediction <button class="help-tip" data-tip="The saved AeroTwin R3 prediction for this interval." aria-label="About R3 Prediction">i</button></span><span class="pred-val" id="predR3">&mdash;</span></div>
+        <div class="pred-section-label model">AeroFlux R3</div>
+        <div class="pred-row highlight"><span class="pred-label">R3 Prediction <button class="help-tip" data-tip="The saved AeroFlux R3 prediction for this interval." aria-label="About R3 Prediction">i</button></span><span class="pred-val" id="predR3">&mdash;</span></div>
 
         <div class="pred-sep"></div>
 
@@ -1924,17 +1924,17 @@
           <table class="report-table"><thead><tr><th>Method</th><th>Predicted fuel</th><th>Absolute error</th></tr></thead><tbody>
             <tr><td>Measured replay label</td><td id="reportMeasured">—</td><td>Reference</td></tr>
             <tr><td>Physics baseline</td><td id="reportPhysics">—</td><td id="reportPhysicsError">—</td></tr>
-            <tr><td>AeroTwin R3</td><td id="reportR3">—</td><td id="reportR3AbsError">—</td></tr>
+            <tr><td>AeroFlux R3</td><td id="reportR3">—</td><td id="reportR3AbsError">—</td></tr>
           </tbody></table>
         </section>
         <section class="report-section" aria-labelledby="reportChartTitle">
           <h3 id="reportChartTitle">Cumulative fuel-burn replay</h3>
           <div class="report-chart-wrap"><canvas id="reportChart" width="1400" height="460" aria-label="Final cumulative fuel-burn comparison chart"></canvas></div>
-          <div class="report-chart-legend"><span><i class="report-chart-key"></i>Measured</span><span><i class="report-chart-key physics"></i>Physics baseline</span><span><i class="report-chart-key r3"></i>AeroTwin R3</span></div>
+          <div class="report-chart-legend"><span><i class="report-chart-key"></i>Measured</span><span><i class="report-chart-key physics"></i>Physics baseline</span><span><i class="report-chart-key r3"></i>AeroFlux R3</span></div>
         </section>
         <section id="reportDetailedAnalysis" class="report-section" aria-labelledby="reportQualityTitle">
           <h3 id="reportQualityTitle">Prediction quality across the replay</h3>
-          <table class="report-table"><thead><tr><th>Metric</th><th>Physics baseline</th><th>AeroTwin R3</th></tr></thead><tbody>
+          <table class="report-table"><thead><tr><th>Metric</th><th>Physics baseline</th><th>AeroFlux R3</th></tr></thead><tbody>
             <tr><td>Total predicted fuel</td><td id="reportPhysicsTotal">—</td><td id="reportR3Total">—</td></tr>
             <tr><td>End-of-flight absolute error</td><td id="reportPhysicsFinalAbs">—</td><td id="reportR3FinalAbs">—</td></tr>
             <tr><td>End-of-flight relative error</td><td id="reportPhysicsRelative">—</td><td id="reportR3Relative">—</td></tr>
@@ -1963,7 +1963,7 @@
         <section class="report-section" aria-labelledby="reportErrorChartTitle">
           <h3 id="reportErrorChartTitle">Absolute prediction error by interval</h3>
           <div class="report-chart-wrap compact"><canvas id="reportErrorChart" width="1400" height="380" aria-label="Absolute prediction error for each replay interval"></canvas></div>
-          <p class="report-chart-caption">Lower is better. The white trace is the Physics baseline; red is AeroTwin R3.</p>
+          <p class="report-chart-caption">Lower is better. The white trace is the Physics baseline; red is AeroFlux R3.</p>
         </section>
         <div class="report-summary-grid report-section">
           <section class="report-section" aria-labelledby="reportMassTitle">
@@ -1987,7 +1987,7 @@
         </div>
         <section class="report-section" aria-labelledby="reportProvenanceTitle">
           <h3 id="reportProvenanceTitle">Data provenance</h3>
-          <p class="report-note">This report uses the currently replayed PRC demo-flight interval labels and the corresponding saved Physics baseline and AeroTwin R3 predictions. It is a demo replay summary, not an operational dispatch report or a live aircraft measurement.</p>
+          <p class="report-note">This report uses the currently replayed PRC demo-flight interval labels and the corresponding saved Physics baseline and AeroFlux R3 predictions. It is a demo replay summary, not an operational dispatch report or a live aircraft measurement.</p>
         </section>
         <div class="completion-actions"><button id="reportExportCsv" class="secondary-btn" type="button">Export CSV</button><button id="reportExportJson" class="secondary-btn" type="button">Export JSON</button><button id="reportClose" class="secondary-btn" type="button">Back to simulation</button><button id="reportPrint" class="primary-btn" type="button">Print / save PDF</button></div>
       </article>
@@ -1996,7 +1996,7 @@
       <div class="comparison-card glass">
         <span class="eyebrow">Prediction analysis</span>
         <h2 id="comparisonTitle">Fuel-burn comparison</h2>
-        <p>Expanded view of the current replay: measured fuel labels, OpenAP physics baseline, and AeroTwin R3 prediction.</p>
+        <p>Expanded view of the current replay: measured fuel labels, OpenAP physics baseline, and AeroFlux R3 prediction.</p>
         <div class="chart-toolbar" role="group" aria-label="Expanded prediction chart view">
           <button class="chart-btn active" data-chart-mode="cumulative">Cumulative</button>
           <button class="chart-btn" data-chart-mode="rate">Burn rate</button>
@@ -2022,11 +2022,11 @@
         <div class="benchmark-hero">
           <div><span>Physics baseline</span><b>228.25 kg</b></div>
           <span class="benchmark-arrow">→</span>
-          <div><span>AeroTwin R3</span><b>213.73 kg</b></div>
+          <div><span>AeroFlux R3</span><b>213.73 kg</b></div>
         </div>
         <div class="benchmark-bars" aria-label="Final RMSE visual comparison">
           <div><div class="benchmark-bar-head"><span>Physics baseline RMSE</span><b>228.25 kg</b></div><div class="benchmark-track"><div class="benchmark-fill" style="width:100%"></div></div></div>
-          <div><div class="benchmark-bar-head"><span>AeroTwin R3 final RMSE</span><b>213.73 kg</b></div><div class="benchmark-track"><div class="benchmark-fill r3" style="width:93.64%"></div></div></div>
+          <div><div class="benchmark-bar-head"><span>AeroFlux R3 final RMSE</span><b>213.73 kg</b></div><div class="benchmark-track"><div class="benchmark-fill r3" style="width:93.64%"></div></div></div>
         </div>
         <table class="benchmark-detail"><thead><tr><th>Measure</th><th>Baseline</th><th>R3</th></tr></thead><tbody>
           <tr><td>Final test-split RMSE</td><td>228.25 kg</td><td>213.73 kg</td></tr>

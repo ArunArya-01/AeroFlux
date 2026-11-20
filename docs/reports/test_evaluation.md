@@ -1,6 +1,6 @@
 # Official Held-Out Final Test Evaluation — Distilled MLP Baseline
 
-**Stage:** AeroTwin Distillation Step 5 (evaluation only)  
+**Stage:** AeroFlux Distillation Step 5 (evaluation only)  
 **Date:** 2026-07-30  
 **Status:** Complete — permanent MLP held-out baseline established
 
@@ -285,7 +285,7 @@ python experiments/08_distillation/05_test_evaluation.py --final-featured featur
 
 ## Final conclusions (evidence only)
 
-1. **Official AeroTwin MLP baseline:** **Large** (~2.89M, α=0.1, β=0.9). Final test RMSE **215.85 kg**, better than XLarge (218.59).
+1. **Official AeroFlux MLP baseline:** **Large** (~2.89M, α=0.1, β=0.9). Final test RMSE **215.85 kg**, better than XLarge (218.59).
 
 2. **Does XLarge justify extra parameters?** **No.** On Final it is **+2.73 kg** worse RMSE, roughly **2×** CPU latency, and **2.3×** disk size, with only 40.8% of intervals improved by &gt;1 kg abs error.
 

@@ -1003,7 +1003,7 @@ def _write_report(
     lines = [
         "# Official Held-Out Final Test Evaluation — Distilled MLP Baseline",
         "",
-        "**Stage:** AeroTwin Distillation Step 5 (evaluation only)",
+        "**Stage:** AeroFlux Distillation Step 5 (evaluation only)",
         "",
         "Frozen Step-4 checkpoints. No training, no hyperparameter changes, no preprocessing refits of model weights.",
         f"Training KD weights were α={FIXED_ALPHA}, β={FIXED_BETA}.",

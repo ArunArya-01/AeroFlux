@@ -1,6 +1,6 @@
-# AeroTwin ONNX Inference Host (Rust)
+# AeroFlux ONNX Inference Host (Rust)
 
-A **compiled, language-neutral** inference service for AeroTwin distillation
+A **compiled, language-neutral** inference service for AeroFlux distillation
 students. Once a model is exported to ONNX, it runs as a single native binary
 via [ONNX Runtime](https://onnxruntime.ai/) — no Python, no PyTorch, no
 scikit-learn at inference time.

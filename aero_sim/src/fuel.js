@@ -1,7 +1,7 @@
 // Fuel-burn prediction for each flight segment.
 //
 // Two engines:
-//  1. ONNX Runtime Web — loads the exported AeroTwin student model
+//  1. ONNX Runtime Web — loads the exported AeroFlux student model
 //     (`public/models/large_mlp.onnx` + `large_mlp.preproc.json`) and runs the
 //     real trained model in-browser. Feature vector is built to match the
 //     preprocessing contract emitted by `experiments/11_onnx_deploy/export_onnx.py`.

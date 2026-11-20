@@ -1,4 +1,4 @@
-"""Reusable training utilities for AeroTwin knowledge-distillation students.
+"""Reusable training utilities for AeroFlux knowledge-distillation students.
 
 The frozen teacher dataset (`distillation_dataset.parquet`) is the sole data
 source. Feature engineering is not modified here.

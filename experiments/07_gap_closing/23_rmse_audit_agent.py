@@ -423,7 +423,7 @@ def main() -> None:
 
     # Write parity audit
     parity_md = "# Benchmark Parity Audit\n\n"
-    parity_md += "Comparison of AeroTwin implementation vs Sun et al. (JOAS 2026) preprocessing methodology.\n\n"
+    parity_md += "Comparison of AeroFlux implementation vs Sun et al. (JOAS 2026) preprocessing methodology.\n\n"
     parity_md += "| Step | Status | Classification | Notes |\n"
     parity_md += "|------|--------|----------------|-------|\n"
     for p in parity:

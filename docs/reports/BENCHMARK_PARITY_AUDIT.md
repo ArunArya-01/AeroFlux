@@ -1,6 +1,6 @@
 # Benchmark Parity Audit
 
-Comparison of AeroTwin implementation vs Sun et al. (JOAS 2026) preprocessing methodology.
+Comparison of AeroFlux implementation vs Sun et al. (JOAS 2026) preprocessing methodology.
 
 | Step | Status | Classification | Notes |
 |------|--------|----------------|-------|

@@ -1,7 +1,7 @@
-"""External validation audit infrastructure for AeroTwin.
+"""External validation audit infrastructure for AeroFlux.
 
 Implements the pipeline recommended in
-``AeroTwin_External_Dataset_Audit_Package.md``:
+``AeroFlux_External_Dataset_Audit_Package.md``:
 
 * ``audit_utils`` – dataset-agnostic phase, energy, sparsity, intervals
 * ``dashlink_loader`` – NASA DASHlink Project 85 MATLAB flight data

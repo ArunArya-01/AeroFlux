@@ -1,4 +1,4 @@
-"""Error analysis of frozen AeroTwin official Rank/Final predictions.
+"""Error analysis of frozen AeroFlux official Rank/Final predictions.
 
 Answers:
   1. Which aircraft types contribute most to RMSE?

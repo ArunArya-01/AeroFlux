@@ -1,6 +1,6 @@
 """Minimal pilot experiment suite for external dataset audit.
 
-Experiments (AeroTwin_External_Dataset_Audit_Package §5):
+Experiments (AeroFlux_External_Dataset_Audit_Package §5):
 
 * **A. Direct baseline** – predict ``actual_fuel_kg`` with base + physics features
 * **B. Fuel-Flow target** – predict rate; recover kg via duration
@@ -629,7 +629,7 @@ def load_or_build_dataset(args: argparse.Namespace) -> pl.DataFrame:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Run AeroTwin external dataset audit pilot experiments"
+        description="Run AeroFlux external dataset audit pilot experiments"
     )
     p.add_argument(
         "--source",
